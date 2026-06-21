@@ -4,6 +4,10 @@ const responseHelper = require("../helpers/response.helper");
 
 const axios = require('axios'); // npm install axios
 const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://localhost:3002';
+const PAYMENT_SERVICE_URL = process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3004';
+const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL || 'http://identity-service:3001';
+
+const eventBus = require('../utils/eventBus');
 
 exports.createOrder = async (req, res) => {
   try {
@@ -70,13 +74,54 @@ exports.createOrder = async (req, res) => {
       shippingAddress,
       customerNote,
       status: "pending",
-      paymentStatus: "unpaid",
       pendingAt: new Date(),
     });
 
     await order.save();
 
-    // Xóa giỏ hàng sau khi đặt hàng thành công
+    // Lấy email người dùng từ identity-service (internal)
+    try {
+      const userRes = await axios.get(
+        `${IDENTITY_SERVICE_URL}/api/users/${req.user.id}`,
+        { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+      );
+      if (userRes.data && userRes.data.email) {
+        order.userEmail = userRes.data.email;
+      }
+    } catch (userErr) {
+      console.error('Failed to fetch user email:', userErr.message);
+    }
+
+    // Nếu là MoMo, gọi payment-service để tạo payment URL
+    let paymentUrl = null;
+    if (paymentMethod === "momo") {
+      try {
+        const momoRes = await axios.post(
+          `${PAYMENT_SERVICE_URL}/api/payment/create`,
+          {
+            orderId: order._id.toString(),
+            amount: total,
+            orderInfo: `Thanh toan don hang ${order.orderCode}`,
+          },
+          { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+        );
+
+        if (momoRes.data.success) {
+          paymentUrl = momoRes.data.data.payUrl;
+          order.paymentUrl = paymentUrl;
+        }
+      } catch (momoErr) {
+        console.error('MoMo payment creation failed:', momoErr.message);
+      }
+    }
+
+    // Lưu userEmail (và paymentUrl nếu có)
+    await order.save();
+
+    // Publish ORDER_CREATED event (async, fire-and-forget)
+    setImmediate(() => {
+      eventBus.publishOrderCreated(order);
+    });
 
     res.status(201).json({
       success: true,
@@ -88,6 +133,7 @@ exports.createOrder = async (req, res) => {
         total: order.total,
         status: order.status,
         paymentMethod: order.paymentMethod,
+        paymentUrl,
         createdAt: order.createdAt,
       },
     });
@@ -181,22 +227,32 @@ exports.updateOrder = async (req, res) => {
           order.deliveredAt = new Date();
           order.paymentStatus = "paid"; // Tự động set paid khi giao hàng thành công
 
-          // Cập nhật sold count cho từng product
+          // Cập nhật sold count qua catalog-service
           for (const item of order.items) {
-            await Product.findByIdAndUpdate(item.productId, {
-              $inc: { sold: item.quantity },
-            });
+            await axios.post(
+              `${CATALOG_SERVICE_URL}/api/products/${item.productId}/increment-sold`,
+              { quantity: item.quantity },
+              { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+            );
           }
+
+          // Publish ORDER_DELIVERED
+          setImmediate(() => eventBus.publishOrderDelivered(order));
           break;
         case "cancelled":
           order.cancelledAt = new Date();
 
-          // Hoàn trả stock khi hủy đơn
+          // Hoàn trả stock qua catalog-service
           for (const item of order.items) {
-            await Product.findByIdAndUpdate(item.productId, {
-              $inc: { stock: item.quantity },
-            });
+            await axios.post(
+              `${CATALOG_SERVICE_URL}/api/products/${item.productId}/restore-stock`,
+              { quantity: item.quantity },
+              { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+            );
           }
+
+          // Publish ORDER_CANCELLED
+          setImmediate(() => eventBus.publishOrderCancelled(order));
           break;
       }
     }
@@ -250,12 +306,17 @@ exports.cancelOrder = async (req, res) => {
     // Hủy đơn và hoàn stock
     await order.cancel(cancelReason);
 
-    // Hoàn trả stock
+    // Hoàn trả stock qua catalog-service
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: item.quantity },
-      });
+      await axios.post(
+        `${CATALOG_SERVICE_URL}/api/products/${item.productId}/restore-stock`,
+        { quantity: item.quantity },
+        { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+      );
     }
+
+    // Publish ORDER_CANCELLED
+    setImmediate(() => eventBus.publishOrderCancelled(order));
 
     res.json({
       success: true,
@@ -325,6 +386,37 @@ exports.getOrderHistory = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+};
+
+// Internal: Cập nhật trạng thái thanh toán (từ payment-service callback)
+exports.updatePaymentStatus = async (req, res) => {
+  try {
+    const { paymentStatus, paymentTransactionId, paidAmount, failureReason } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    order.paymentStatus = paymentStatus;
+    if (paymentTransactionId) {
+      order.paymentTransactionId = paymentTransactionId;
+    }
+    if (paymentStatus === 'paid') {
+      order.paidAt = new Date();
+    }
+
+    await order.save();
+
+    // Publish ORDER_PAID if payment succeeded
+    if (paymentStatus === 'paid') {
+      setImmediate(() => eventBus.publishOrderPaid(order));
+    }
+
+    res.json({ success: true, message: 'Payment status updated' });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
@@ -444,5 +536,284 @@ exports.lookupOrder = async (req, res) => {
     return responseHelper.error(res, httpStatus.BAD_REQUEST, {
       error: err.message || "Lỗi không xác định khi tra cứu đơn hàng.",
     });
+  }
+};
+
+// --- ADMIN CONTROLLERS ---
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, search } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filter = {};
+    if (status) filter.status = status;
+
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      filter.$or = [
+        { orderCode: searchRegex },
+        { userEmail: searchRegex },
+        { 'shippingAddress.fullName': searchRegex },
+        { 'shippingAddress.phone': searchRegex }
+      ];
+    }
+
+    const orders = await Order.find(filter)
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Order.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          total,
+          page: Number(page),
+          pages: Math.ceil(total / Number(limit))
+        }
+      }
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = [
+      "pending",
+      "confirmed",
+      "shipping",
+      "delivered",
+      "cancelled",
+    ];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Status không hợp lệ" });
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Cập nhật status và timestamp tương ứng
+    if (status && status !== order.status) {
+      order.status = status;
+
+      switch (status) {
+        case "confirmed":
+          order.confirmedAt = new Date();
+          break;
+        case "shipping":
+          order.shippingAt = new Date();
+          break;
+        case "delivered":
+          order.deliveredAt = new Date();
+          order.paymentStatus = "paid"; // Tự động set paid khi giao hàng thành công
+          order.paidAt = new Date();
+
+          // Cập nhật sold count qua catalog-service
+          for (const item of order.items) {
+            try {
+              await axios.post(
+                `${CATALOG_SERVICE_URL}/api/products/${item.productId}/increment-sold`,
+                { quantity: item.quantity },
+                { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+              );
+            } catch (err) {
+              console.error(`Failed to increment sold count for product ${item.productId}:`, err.message);
+            }
+          }
+
+          // Publish ORDER_DELIVERED
+          setImmediate(() => eventBus.publishOrderDelivered(order));
+          break;
+        case "cancelled":
+          order.cancelledAt = new Date();
+
+          // Hoàn trả stock qua catalog-service
+          for (const item of order.items) {
+            try {
+              await axios.post(
+                `${CATALOG_SERVICE_URL}/api/products/${item.productId}/restore-stock`,
+                { quantity: item.quantity },
+                { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+              );
+            } catch (err) {
+              console.error(`Failed to restore stock for product ${item.productId}:`, err.message);
+            }
+          }
+
+          // Publish ORDER_CANCELLED
+          setImmediate(() => eventBus.publishOrderCancelled(order));
+          break;
+      }
+    }
+
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Cập nhật trạng thái đơn hàng thành công",
+      order,
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.getOrderStatsSummary = async (req, res) => {
+  try {
+    const { date, month, year, quarter } = req.query;
+    
+    // Construct date filter
+    let dateFilter = {};
+    if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else if (month) {
+      const [y, m] = month.split('-').map(Number);
+      const start = new Date(y, m - 1, 1);
+      const end = new Date(y, m, 0, 23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else if (quarter) {
+      const [y, qStr] = quarter.split('-');
+      const q = parseInt(qStr.replace('Q', ''));
+      const startMonth = (q - 1) * 3;
+      const endMonth = q * 3;
+      const start = new Date(parseInt(y), startMonth, 1);
+      const end = new Date(parseInt(y), endMonth, 0, 23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else if (year) {
+      const start = new Date(parseInt(year), 0, 1);
+      const end = new Date(parseInt(year), 11, 31, 23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    } else {
+      // Default to current year
+      const currentYear = new Date().getFullYear();
+      const start = new Date(currentYear, 0, 1);
+      const end = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: start, $lte: end } };
+    }
+
+    // 1. Stats Cards
+    const totalOrders = await Order.countDocuments(dateFilter);
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+
+    const revenueResult = await Order.aggregate([
+      { $match: { status: 'delivered', ...dateFilter } },
+      { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+    const rawRecentOrders = await Order.find()
+      .sort('-createdAt')
+      .limit(5);
+
+    const recentOrders = rawRecentOrders.map(order => ({
+      _id: order._id,
+      total: order.total,
+      status: order.status,
+      createdAt: order.createdAt,
+      orderCode: order.orderCode,
+      user: {
+        name: order.shippingAddress?.fullName || order.userEmail || 'Khách hàng'
+      }
+    }));
+
+    // 2. Revenue Timeline Data (Line Chart 1)
+    let groupFormat = "%Y-%m";
+    if (date) groupFormat = "%H:00";
+    else if (month) groupFormat = "%d/%m";
+    else if (quarter || year) groupFormat = "Tháng %m";
+
+    const revenueTimelineRaw = await Order.aggregate([
+      { $match: { status: 'delivered', ...dateFilter } },
+      { $group: { 
+          _id: { $dateToString: { format: groupFormat, date: "$createdAt", timezone: "+07:00" } }, 
+          total: { $sum: "$total" } 
+        } 
+      },
+      { $sort: { _id: 1 } }
+    ]);
+    
+    const revenueTimeline = revenueTimelineRaw.map(item => ({
+      label: item._id,
+      value: item.total
+    }));
+
+    // 3. Best Selling Products Data (Line Chart 2)
+    const bestSellersRaw = await Order.aggregate([
+      { $match: { status: 'delivered', ...dateFilter } },
+      { $unwind: "$items" },
+      { $group: { 
+          _id: "$items.productId", 
+          name: { $first: "$items.name" }, 
+          quantity: { $sum: "$items.quantity" } 
+        } 
+      },
+      { $sort: { quantity: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    const bestSellers = bestSellersRaw.map(item => ({
+      label: item.name,
+      value: item.quantity
+    }));
+
+    // 4. Brand Sales Data (Bar Chart 4)
+    let productToBrandMap = {};
+    try {
+      const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://catalog-service:3002';
+      const catalogRes = await axios.get(`${CATALOG_SERVICE_URL}/api/products?limit=1000`);
+      if (catalogRes.data) {
+        const prods = catalogRes.data.data?.products || catalogRes.data.products || catalogRes.data.data || [];
+        prods.forEach(p => {
+          productToBrandMap[p._id || p.id] = p.brand?.name || 'Khác';
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch product brand mappings from catalog-service:', err.message);
+    }
+
+    const brandSalesMap = {};
+    const ordersForBrands = await Order.find({ status: 'delivered', ...dateFilter });
+    ordersForBrands.forEach(order => {
+      order.items.forEach(item => {
+        const brandName = productToBrandMap[item.productId] || 'Khác';
+        brandSalesMap[brandName] = (brandSalesMap[brandName] || 0) + item.quantity;
+      });
+    });
+    
+    const brandSales = Object.keys(brandSalesMap).map(brand => ({
+      label: brand,
+      value: brandSalesMap[brand]
+    })).sort((a, b) => b.value - a.value);
+
+    res.json({
+      success: true,
+      data: {
+        totalOrders,
+        pendingOrders,
+        totalRevenue,
+        recentOrders,
+        revenueTimeline,
+        bestSellers,
+        brandSales
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 };
