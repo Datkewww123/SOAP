@@ -5,8 +5,8 @@ import { fetchApi } from "../utils/api"; // THÊM fetchApi
 // Component con nội bộ để tái sử dụng
 function FilterGroup({ title, children }) {
   return (
-    <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
-      <h3 className="text-sm font-bold uppercase text-gray-800 border-b-2 border-primary pb-2 mb-4">
+    <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+      <h3 className="text-sm font-bold uppercase text-gray-800 dark:text-white border-b-2 border-primary pb-2 mb-4">
         {title}
       </h3>
       <div className="flex flex-col gap-2.5">{children}</div>
