@@ -22,6 +22,7 @@ const shippingAddressSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userEmail: { type: String },
   orderCode: { type: String, unique: true }, // Mã đơn hàng duy nhất - sẽ được tạo tự động bởi pre-save hook
   
   // Order items
