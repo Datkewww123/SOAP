@@ -94,12 +94,7 @@ export default function ProductDetailPage() {
     // Gọi hàm addToCart trong CartContext. Hàm này sẽ gọi API Backend.
     const result = await addToCart(product, quantity, selectedSize);
 
-    if (result.success) {
-      const sizeText = selectedSize ? ` (Size: ${selectedSize})` : "";
-      toast.success(
-        `Đã thêm ${quantity} x ${product.name}${sizeText} vào giỏ!`
-      );
-    } else {
+    if (!result.success) {
       toast.error(result.message);
     }
   };
@@ -132,7 +127,7 @@ export default function ProductDetailPage() {
 
   // 7. Render giao diện
   return (
-    <div className="container w-[90%] max-w-[1200px] mx-auto mt-10 py-10">
+    <div className="container w-[90%] max-w-[1200px] mx-auto mt-10 py-10 dark:text-gray-100">
       {/* === PHẦN CHÍNH: 2 CỘT === */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         {/* CỘT TRÁI: GALLERY ẢNH */}
@@ -142,7 +137,7 @@ export default function ProductDetailPage() {
 
         {/* CỘT PHẢI: THÔNG TIN & LỰA CHỌN */}
         <div className="md:col-span-1">
-          <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+          <h1 className="text-3xl font-bold mb-4 dark:text-white">{product.name}</h1>
           <p className="text-3xl font-bold text-red-600 mb-6">
             {product.price ? product.price.toLocaleString("vi-VN") : "0"} ₫
           </p>
@@ -159,7 +154,7 @@ export default function ProductDetailPage() {
                     className={`border rounded-md w-14 h-10 transition-all ${
                       selectedSize === size
                         ? "bg-primary text-white border-primary" // Nổi bật size đã chọn
-                        : "bg-white text-gray-800 border-gray-300"
+                        : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                     }`}
                   >
                     {size}
@@ -176,10 +171,10 @@ export default function ProductDetailPage() {
           {/* LỰA CHỌN SỐ LƯỢNG */}
           <div className="mb-6">
             <label className="block font-bold mb-2">Số lượng:</label>
-            <div className="flex items-center border border-gray-300 rounded-md max-w-[150px]">
+            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-md max-w-[150px]">
               <button
                 onClick={() => handleQuantityChange(-1)}
-                className="px-5 py-2 text-xl font-bold"
+                className="px-5 py-2 text-xl font-bold dark:text-white"
               >
                 -
               </button>
@@ -187,18 +182,18 @@ export default function ProductDetailPage() {
                 type="text"
                 readOnly
                 value={quantity}
-                className="w-14 text-center font-bold outline-none"
+                className="w-14 text-center font-bold outline-none bg-transparent text-gray-800 dark:text-slate-100"
               />
               <button
                 onClick={() => handleQuantityChange(1)}
-                className="px-5 py-2 text-xl font-bold"
+                className="px-5 py-2 text-xl font-bold dark:text-white"
               >
                 +
               </button>
             </div>
             {/* Hiển thị số lượng tồn kho */}
             {product.stock !== undefined && product.stock !== null && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Còn {product.stock} sản phẩm trong kho
               </p>
             )}
@@ -222,14 +217,14 @@ export default function ProductDetailPage() {
       {/* === PHẦN DƯỚI: TABS & SẢN PHẨM LIÊN QUAN === */}
       <div className="mt-16">
         {/* Thanh TABS (Mô tả, Bảo hành...) */}
-        <div className="border-b border-gray-300 mb-6">
+        <div className="border-b border-gray-300 dark:border-gray-600 mb-6">
           <nav className="flex gap-6">
             <button
               onClick={() => setActiveTab("description")}
               className={`text-lg font-bold uppercase pb-3 border-b-2 ${
                 activeTab === "description"
                   ? "border-primary text-primary"
-                  : "border-transparent text-gray-600"
+                  : "border-transparent text-gray-600 dark:text-gray-400"
               }`}
             >
               Mô tả sản phẩm
@@ -239,7 +234,7 @@ export default function ProductDetailPage() {
               className={`text-lg font-bold uppercase pb-3 border-b-2 ${
                 activeTab === "warranty"
                   ? "border-primary text-primary"
-                  : "border-transparent text-gray-600"
+                  : "border-transparent text-gray-600 dark:text-gray-400"
               }`}
             >
               Chính sách bảo hành
@@ -280,7 +275,7 @@ export default function ProductDetailPage() {
                     slug: prod.slug,
                     // Lấy ảnh đầu tiên, hoặc fallback nếu không có ảnh
                     imageUrl:
-                      prod.images?.[0] || "https://via.placeholder.com/300",
+                      prod.images?.[0] || "https://placehold.co/300x300?text=No+Image",
                   }}
                 />
               ))
