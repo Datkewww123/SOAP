@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const internalAuth = require('../middleware/internalAuth');
 
 /**
  * @swagger
@@ -81,6 +82,7 @@ router.get('/', auth, admin, userController.listUsers);
  *       404:
  *         description: Không tìm thấy người dùng
  */
+router.get('/:id', internalAuth, userController.getUserById);
 router.put('/:id', auth, userController.updateUser);
 
 /**
