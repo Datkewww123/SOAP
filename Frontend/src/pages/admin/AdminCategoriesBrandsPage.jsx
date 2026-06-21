@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { fetchApi } from "../../utils/api";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -115,6 +116,13 @@ export default function AdminCategoriesBrandsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [modalType, setModalType] = useState("category");
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: null,
+    itemType: "",
+    endpoint: "",
+  });
 
   // State cho Phân trang
   const [categoriesPagination, setCategoriesPagination] = useState({
@@ -213,21 +221,28 @@ export default function AdminCategoriesBrandsPage() {
   };
 
   // Xử lý Xóa
-  const handleDeleteItem = async (itemId, itemName) => {
+  const handleDeleteClick = (itemId, itemName) => {
     const itemType = activeTab === "category" ? "Danh mục" : "Thương hiệu";
     const endpoint =
       activeTab === "category" ? `/categories/${itemId}` : `/brands/${itemId}`;
+    setConfirmModal({
+      isOpen: true,
+      itemId,
+      itemName,
+      itemType,
+      endpoint,
+    });
+  };
 
-    if (
-      window.confirm(`Bạn có chắc chắn muốn xóa ${itemType} "${itemName}"?`)
-    ) {
-      try {
-        await fetchApi(endpoint, { method: "DELETE" });
-        toast.success(`Đã xóa ${itemType} "${itemName}" thành công.`);
-        fetchData(activeTab, currentPagination.currentPage);
-      } catch (error) {
-        toast.error(error.message || `Xóa ${itemType} thất bại.`);
-      }
+  const confirmDeleteItem = async () => {
+    const { endpoint, itemType, itemName } = confirmModal;
+    setConfirmModal({ isOpen: false, itemId: null, itemName: null, itemType: "", endpoint: "" });
+    try {
+      await fetchApi(endpoint, { method: "DELETE" });
+      toast.success(`Đã xóa ${itemType} "${itemName}" thành công.`);
+      fetchData(activeTab, currentPagination.currentPage);
+    } catch (error) {
+      toast.error(error.message || `Xóa ${itemType} thất bại.`);
     }
   };
 
@@ -314,7 +329,7 @@ export default function AdminCategoriesBrandsPage() {
                     Sửa
                   </button>
                   <button
-                    onClick={() => handleDeleteItem(item.id, item.name)}
+                    onClick={() => handleDeleteClick(item.id, item.name)}
                     className="text-red-600 hover:text-red-900 transition-colors"
                   >
                     Xóa
@@ -341,6 +356,25 @@ export default function AdminCategoriesBrandsPage() {
           onPageChange={handlePageChange}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={`Xóa ${confirmModal.itemType}`}
+        message={
+          confirmModal.isOpen && (
+            <span>
+              Bạn có chắc chắn muốn xóa {confirmModal.itemType.toLowerCase()}{" "}
+              <strong className="font-semibold text-gray-800 dark:text-white">
+                "{confirmModal.itemName}"
+              </strong>
+              ? Hành động này không thể hoàn tác.
+            </span>
+          )
+        }
+        type="danger"
+        onConfirm={confirmDeleteItem}
+        onCancel={() => setConfirmModal({ isOpen: false, itemId: null, itemName: null, itemType: "", endpoint: "" })}
+      />
     </div>
   );
 }
