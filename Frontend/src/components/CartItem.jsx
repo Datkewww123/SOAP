@@ -6,8 +6,7 @@ import { Link } from "react-router-dom";
 export default function CartItem({ item }) {
   const { updateQuantity, removeFromCart } = useCart();
 
-  const originalProductId = item.id.split("_")[0];
-  const productUrl = `/san-pham/${item.productSlug || item.originalProductId}`;
+  const productUrl = `/san-pham/${item.productSlug || item.productId}`;
 
   const handleQuantityChange = (e) => {
     const newQuantity = parseInt(e.target.value, 10);
@@ -25,60 +24,75 @@ export default function CartItem({ item }) {
   };
 
   return (
-    // Layout cho 1 hàng sản phẩm
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center border-b pb-4">
-      {/* 1. Thông tin sản phẩm (chiếm 2/5 cột) */}
-      <div className="md:col-span-2 flex items-center gap-4">
-        <Link to={productUrl}>
+    // Layout cho 1 hàng sản phẩm, dùng grid-cols-12 đồng bộ hoàn hảo với header
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center p-5 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+      {/* 1. Thông tin sản phẩm (chiếm 5/12 cột) */}
+      <div className="lg:col-span-5 flex items-center gap-4">
+        <Link to={productUrl} className="flex-shrink-0">
           <img
-            src={item.imageUrl}
+            src={item.imageUrl || "https://placehold.co/150x150?text=No+Image"}
             alt={item.name}
             className="w-20 h-20 object-cover rounded"
+            onError={(e) => {
+              e.currentTarget.src = "https://placehold.co/150x150?text=No+Image";
+            }}
           />
         </Link>
         <div>
           <Link
             to={productUrl}
-            className="font-bold text-sm hover:text-primary"
+            className="font-bold text-sm hover:text-primary dark:text-slate-200 dark:hover:text-primary block leading-tight"
           >
             {item.name}
           </Link>
           {/* Hiển thị size nếu có */}
           {item.selectedSize && (
-            <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Size: {item.selectedSize}</p>
           )}
-          <button
-            onClick={() => removeFromCart(item.id)}
-            className="text-red-500 text-xs hover:underline mt-1"
-          >
-            Xóa
+        </div>
+      </div>
+
+      {/* 2. Đơn giá (chiếm 2/12 cột) */}
+      <div className="lg:col-span-2 lg:text-center text-sm text-gray-700 dark:text-slate-300">
+        <span className="lg:hidden font-bold">Đơn giá: </span>
+        {item.price ? item.price.toLocaleString("vi-VN") : "0"} đ
+      </div>
+
+      {/* 3. Số lượng (chiếm 2/12 cột) */}
+      <div className="lg:col-span-2 flex items-center lg:justify-center">
+        <span className="lg:hidden font-bold mr-3">Số lượng: </span>
+        <div className="flex items-center border border-gray-200 dark:border-gray-600 rounded-md max-w-[100px] bg-white dark:bg-gray-700">
+          <button onClick={decrement} className="px-3 py-1 text-lg font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white cursor-pointer">
+            -
+          </button>
+          <input
+            type="number"
+            value={item.quantity}
+            onChange={handleQuantityChange}
+            className="w-12 text-center font-bold outline-none bg-transparent text-gray-800 dark:text-slate-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <button onClick={increment} className="px-3 py-1 text-lg font-bold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white cursor-pointer">
+            +
           </button>
         </div>
       </div>
 
-      <div className="text-sm">
-        <span className="md:hidden font-bold">Đơn giá: </span>
-        {item.price ? item.price.toLocaleString("vi-VN") : "0"} ₫
+      {/* 4. Thành tiền (chiếm 2/12 cột) */}
+      <div className="lg:col-span-2 lg:text-right font-bold text-gray-800 dark:text-slate-200">
+        <span className="lg:hidden">Thành tiền: </span>
+        {item.price && item.quantity ? (item.price * item.quantity).toLocaleString("vi-VN") : "0"} đ
       </div>
 
-      <div className="flex items-center border rounded-md max-w-[100px]">
-        <button onClick={decrement} className="px-3 py-1 text-lg font-bold">
-          -
+      {/* 5. Nút xóa sản phẩm - Trash can icon (chiếm 1/12 cột) */}
+      <div className="lg:col-span-1 text-right mt-2 lg:mt-0">
+        <button
+          onClick={() => removeFromCart(item.id)}
+          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 rounded-xl transition-all duration-200 cursor-pointer"
+          title="Xóa sản phẩm"
+          aria-label={`Xóa ${item.name} khỏi giỏ hàng`}
+        >
+          <i className="far fa-trash-alt text-lg" />
         </button>
-        <input
-          type="number"
-          value={item.quantity}
-          onChange={handleQuantityChange}
-          className="w-12 text-center font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <button onClick={increment} className="px-3 py-1 text-lg font-bold">
-          +
-        </button>
-      </div>
-
-      <div className="text-right font-bold">
-        <span className="md:hidden">Thành tiền: </span>
-        {item.price && item.quantity ? (item.price * item.quantity).toLocaleString("vi-VN") : "0"} ₫
       </div>
     </div>
   );
