@@ -35,13 +35,13 @@ export default function LoginPage() {
 
   return (
     <div className="container w-[90%] max-w-[500px] mx-auto mt-10 py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">Đăng Nhập</h1>
+      <h1 className="text-3xl font-bold text-center mb-8 dark:text-white">Đăng Nhập</h1>
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 bg-white p-8 rounded-lg shadow-md"
+        className="flex flex-col gap-4 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md dark:shadow-gray-900/50"
       >
         <div>
-          <label htmlFor="email" className="block text-sm font-bold mb-1">
+          <label htmlFor="email" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Email *
           </label>
           <input
@@ -53,12 +53,12 @@ export default function LoginPage() {
             // SỬ DỤNG state email và setEmail
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             placeholder="user@test.com"
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-bold mb-1">
+          <label htmlFor="password" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Mật khẩu *
           </label>
           <input
@@ -70,7 +70,7 @@ export default function LoginPage() {
             // SỬ DỤNG state password và setPassword
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-md"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             placeholder="123"
           />
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
           Đăng nhập
         </button>
 
-        <p className="text-center mt-2 text-sm">
+        <p className="text-center mt-2 text-sm dark:text-gray-300">
           Chưa có tài khoản?{" "}
           <Link
             to="/dang-ky"
