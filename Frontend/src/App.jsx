@@ -1,9 +1,7 @@
-// src/App.jsx (Đã sửa hoàn chỉnh)
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/header";
 import Footer from "./components/footer";
-import SocialIcons from "./components/SocialIcons";
 import HomePage from "./pages/HomePage";
 import ProductListPage from "./pages/ProductListPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
@@ -13,10 +11,11 @@ import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import OrderLookupPage from "./pages/OrderLookupPage";
+import PaymentReturnPage from "./pages/PaymentReturnPage";
 import AccountPage from "./pages/AccountPage";
 import SearchPage from "./pages/SearchPage";
 import BrandProductsPage from "./pages/BrandProductsPage";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RepairService from "./pages/policies/RepairService";
 import SizeGuidePage from "./pages/policies/SizeGuidePage";
@@ -36,16 +35,60 @@ import AdminNewsPage from "./pages/admin/AdminNewsPage";
 import AdminFloatingButton from "./components/AdminFloatingButton";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Web Audio API để tổng hợp âm thanh "ting"
+    const playChimeSound = () => {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1318.51, now); // Nốt E6 trong trẻo, ting ting
+        
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(now);
+        osc.stop(now + 0.8);
+      } catch (e) {
+        console.warn("AudioContext blocked or not supported", e);
+      }
+    };
+
+    // Lắng nghe tất cả các sự kiện thay đổi của Toast
+    const unsubscribe = toast.onChange((payload) => {
+      if (payload.status === "added") {
+        playChimeSound();
+      }
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, []);
+
   return (
     <>
       <ToastContainer
-        position="bottom-right"
+        position="top-center"
         autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
+        hideProgressBar={true}
+        newestOnTop={true}
         closeOnClick
         rtl={false}
-        pauseOnFocusLoss
+        pauseOnFocusLoss={false}
         draggable
         pauseOnHover
         theme="light"
@@ -73,6 +116,7 @@ function App() {
           <Route path="/tra-cuu-don-hang" element={<OrderLookupPage />} />
           <Route path="/tai-khoan" element={<AccountPage />} />
           <Route path="/tim-kiem" element={<SearchPage />} />
+          <Route path="/payment/return" element={<PaymentReturnPage />} />
           <Route path="/hang/:brandSlug" element={<BrandProductsPage />} />
 
           <Route path="/dich-vu/sua-chua-giay" element={<RepairService />} />
@@ -111,8 +155,7 @@ function App() {
           </Route>
         </Routes>
       </main>
-      <Footer />
-      <SocialIcons />
+      {location.pathname === "/" && <Footer />}
       <AdminFloatingButton />
     </>
   );
