@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { fetchApi } from "../../utils/api";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -242,7 +243,6 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
 // -----------------------------------------------------------
 
 export default function AdminProductsPage() {
-  // ... (Các Hooks và logic fetchData giữ nguyên)
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -254,6 +254,11 @@ export default function AdminProductsPage() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    productId: null,
+    productName: null,
+  });
 
   // FETCH DROPDOWN DATA (Chạy 1 lần khi load)
   const fetchDropdownData = useCallback(async () => {
@@ -278,23 +283,13 @@ export default function AdminProductsPage() {
         limit: PRODUCTS_PER_PAGE,
       }).toString();
       const productResponse = await fetchApi(`/products?${query}`);
-
-      if (productResponse === null) {
-        return;
-      }
-
-      // Backend trả về {success, data: [...], pagination: {...}}
-      const productsData = productResponse.data || [];
-      const paginationData = productResponse.pagination || { totalPages: 1, total: 0 };
-
-      // Xử lý id cho product list view
-      const processedProducts = productsData.map((p) => ({
-        ...p,
-        id: p._id, // Đảm bảo ID được sử dụng là _id từ MongoDB
-      }));
-
-      setProducts(processedProducts);
-      setPagination(paginationData);
+      const data = productResponse.data || productResponse;
+      setProducts(data.products || []);
+      setPagination({
+        currentPage: data.pagination?.page || 1,
+        totalPages: data.pagination?.pages || 1,
+        total: data.pagination?.total || 0,
+      });
     } catch (error) {
       toast.error("Không thể tải danh sách sản phẩm.");
     } finally {
@@ -320,17 +315,23 @@ export default function AdminProductsPage() {
     fetchProducts(pagination.currentPage);
   };
 
-  const handleDeleteProduct = async (productId, productName) => {
-    if (
-      window.confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${productName}"?`)
-    ) {
-      try {
-        await fetchApi(`/products/${productId}`, { method: "DELETE" });
-        toast.success(`Đã xóa sản phẩm "${productName}" thành công.`);
-        handleSaveAndClose();
-      } catch (error) {
-        toast.error(error.message || "Xóa sản phẩm thất bại.");
-      }
+  const handleDeleteClick = (productId, productName) => {
+    setConfirmModal({
+      isOpen: true,
+      productId,
+      productName,
+    });
+  };
+
+  const confirmDeleteProduct = async () => {
+    const { productId, productName } = confirmModal;
+    setConfirmModal({ isOpen: false, productId: null, productName: null });
+    try {
+      await fetchApi(`/products/${productId}`, { method: "DELETE" });
+      toast.success(`Đã xóa sản phẩm "${productName}" thành công.`);
+      handleSaveAndClose();
+    } catch (error) {
+      toast.error(error.message || "Xóa sản phẩm thất bại.");
     }
   };
 
@@ -407,10 +408,13 @@ export default function AdminProductsPage() {
                   <img
                     src={
                       (product.images && product.images[0]) ||
-                      "https://via.placeholder.com/50"
+                      "https://placehold.co/50x50?text=N"
                     }
                     alt={product.name}
                     className="h-10 w-10 object-cover rounded"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/50x50?text=N";
+                    }}
                   />
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-sm">
@@ -439,7 +443,7 @@ export default function AdminProductsPage() {
                   </button>
                   <button
                     onClick={() =>
-                      handleDeleteProduct(product.id, product.name)
+                      handleDeleteClick(product.id, product.name)
                     }
                     className="text-red-600 hover:text-red-900 transition-colors"
                   >
@@ -459,6 +463,25 @@ export default function AdminProductsPage() {
           onPageChange={handlePageChange}
         />
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Xóa Sản Phẩm"
+        message={
+          confirmModal.isOpen && (
+            <span>
+              Bạn có chắc chắn muốn xóa sản phẩm{" "}
+              <strong className="font-semibold text-gray-800 dark:text-white">
+                "{confirmModal.productName}"
+              </strong>
+              ? Hành động này không thể hoàn tác.
+            </span>
+          )
+        }
+        type="danger"
+        onConfirm={confirmDeleteProduct}
+        onCancel={() => setConfirmModal({ isOpen: false, productId: null, productName: null })}
+      />
     </div>
   );
 }
