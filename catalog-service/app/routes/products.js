@@ -3,6 +3,7 @@ const router = express.Router();
 const productController = require('../controllers/productController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const internalAuth = require('../middleware/internalAuth');
 const { cacheProducts, clearProductCache } = require('../middleware/cache');
 
 // Apply cache middleware cho GET requests
@@ -441,7 +442,10 @@ router.put('/:identifier', auth, admin, productController.updateProduct);
  *         description: Không tìm thấy sản phẩm
  */
 router.delete('/:identifier', auth, admin, productController.deleteProduct);
-// Thêm vào cuối file
-router.post('/:id/reduce-stock', productController.reduceStock);
+
+// Internal endpoints (chỉ Order service gọi qua x-internal-key)
+router.post('/:id/reduce-stock', internalAuth, productController.reduceStock);
+router.post('/:id/restore-stock', internalAuth, productController.restoreStock);
+router.post('/:id/increment-sold', internalAuth, productController.incrementSold);
 
 module.exports = router;
