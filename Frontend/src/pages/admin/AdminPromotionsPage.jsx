@@ -2,12 +2,18 @@
 import React, { useState, useEffect } from "react";
 import { fetchApi } from "../../utils/api";
 import { toast } from "react-toastify";
+import ConfirmModal from "../../components/ConfirmModal";
 
 export default function AdminPromotionsPage() {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    promoId: null,
+    promoCode: "",
+  });
   const [formData, setFormData] = useState({
     code: "",
     description: "",
@@ -88,11 +94,19 @@ export default function AdminPromotionsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa mã khuyến mãi này?")) return;
+  const handleDeleteClick = (id, code) => {
+    setConfirmModal({
+      isOpen: true,
+      promoId: id,
+      promoCode: code,
+    });
+  };
 
+  const confirmDeletePromo = async () => {
+    const { promoId } = confirmModal;
+    setConfirmModal({ isOpen: false, promoId: null, promoCode: "" });
     try {
-      await fetchApi(`/promotions/${id}`, { method: "DELETE" });
+      await fetchApi(`/promotions/${promoId}`, { method: "DELETE" });
       toast.success("Xóa khuyến mãi thành công!");
       loadPromotions();
     } catch (error) {
@@ -219,7 +233,7 @@ export default function AdminPromotionsPage() {
                       Sửa
                     </button>
                     <button
-                      onClick={() => handleDelete(promo._id)}
+                      onClick={() => handleDeleteClick(promo._id, promo.code)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Xóa
@@ -404,6 +418,24 @@ export default function AdminPromotionsPage() {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Xóa Mã Khuyến Mãi"
+        message={
+          confirmModal.isOpen && (
+            <span>
+              Bạn có chắc chắn muốn xóa mã khuyến mãi{" "}
+              <strong className="font-mono bg-gray-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 font-bold text-gray-800 dark:text-white">
+                {confirmModal.promoCode}
+              </strong>
+              ? Hành động này không thể hoàn tác.
+            </span>
+          )
+        }
+        type="danger"
+        onConfirm={confirmDeletePromo}
+        onCancel={() => setConfirmModal({ isOpen: false, promoId: null, promoCode: "" })}
+      />
     </div>
   );
 }
