@@ -1,4 +1,14 @@
 services:
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   nginx:
     image: nginx:alpine
     ports:
@@ -12,7 +22,9 @@ services:
         condition: service_healthy
       order-service:
         condition: service_healthy
-      monolith:
+      payment-service:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   identity-service:
@@ -20,6 +32,9 @@ services:
     expose:
       - "3001"
     env_file: ./identity-service/.env
+    environment:
+      - CATALOG_SERVICE_URL=http://catalog-service:3002
+      - ORDER_SERVICE_URL=http://order-service:3003
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 10s
@@ -43,23 +58,39 @@ services:
       - "3003"
     env_file: ./order-service/.env
     environment:
-      # Override CATALOG_SERVICE_URL dùng Docker internal hostname (thay vì localhost trong .env)
       - CATALOG_SERVICE_URL=http://catalog-service:3002
+      - IDENTITY_SERVICE_URL=http://identity-service:3001
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3003/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  monolith:
-    build: ./Backend
+  payment-service:
+    build: ./payment-service
     expose:
-      - "3000"
-    env_file: ./Backend/.env
-    environment:
-      - HOST=0.0.0.0
+      - "3004"
+    env_file: ./payment-service/.env
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3004/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-service:
+    build: ./notification-service
+    expose:
+      - "3005"
+    env_file: ./notification-service/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3005/health"]
       interval: 10s
       timeout: 5s
       retries: 5
