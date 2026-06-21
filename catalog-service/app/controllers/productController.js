@@ -451,8 +451,33 @@ exports.reduceStock = async (req, res) => {
         if (product.stock < quantity) {
             return res.status(400).json({ success: false, error: `Sản phẩm ${product.name} không đủ số lượng` });
         }
-        product.stock -= quantity;
-        await product.save();
+        await Product.findByIdAndUpdate(req.params.id, { $inc: { stock: -quantity } });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// Endpoint nội bộ: hoàn trả stock (khi hủy đơn)
+exports.restoreStock = async (req, res) => {
+    try {
+        const { quantity } = req.body;
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+        await Product.findByIdAndUpdate(req.params.id, { $inc: { stock: quantity } });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// Endpoint nội bộ: tăng sold count (khi giao hàng thành công)
+exports.incrementSold = async (req, res) => {
+    try {
+        const { quantity } = req.body;
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ success: false, error: 'Product not found' });
+        await Product.findByIdAndUpdate(req.params.id, { $inc: { sold: quantity } });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
