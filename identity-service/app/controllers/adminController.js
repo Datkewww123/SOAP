@@ -5,46 +5,100 @@ const User = require('../models/User');
 //     res.json({ success: true, message: 'Stats not available in identity-service' });
 // };
 
-// exports.getStats = async (req, res) => {
-//   try {
-//     // Total products
-//     const totalProducts = await Product.countDocuments();
-//
-//     // Total orders
-//     const totalOrders = await Order.countDocuments();
-//
-//     // Pending orders
-//     const pendingOrders = await Order.countDocuments({ status: 'pending' });
-//
-//     // Total revenue (from completed orders)
-//     const revenueResult = await Order.aggregate([
-//       { $match: { status: 'completed' } },
-//       { $group: { _id: null, total: { $sum: '$total' } } }
-//     ]);
-//     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
-//
-//     // Total users
-//     const totalUsers = await User.countDocuments();
-//
-//     // Recent orders
-//     const recentOrders = await Order.find()
-//       .sort('-createdAt')
-//       .limit(5)
-//       .populate('user', 'name email')
-//       .select('_id user total status createdAt');
-//
-//     res.json({
-//       totalProducts,
-//       totalOrders,
-//       pendingOrders,
-//       totalRevenue,
-//       totalUsers,
-//       recentOrders
-//     });
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// };
+exports.getStats = async (req, res) => {
+  try {
+    // 1. Count total users
+    const totalUsers = await User.countDocuments();
+
+    // 2. Count total products (fetch from catalog-service)
+    let totalProducts = 0;
+    try {
+      const catalogUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-service:3002';
+      const prodRes = await fetch(`${catalogUrl}/api/products?limit=1`);
+      if (prodRes.ok) {
+        const prodData = await prodRes.json();
+        const stats = prodData.data || prodData;
+        if (stats.pagination) {
+          totalProducts = stats.pagination.total || 0;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch product count from catalog-service:', err.message);
+    }
+
+    // 3. Fetch top 5 most stocked products from catalog-service (for Line Chart 3)
+    let mostStockedProducts = [];
+    try {
+      const catalogUrl = process.env.CATALOG_SERVICE_URL || 'http://catalog-service:3002';
+      const stockRes = await fetch(`${catalogUrl}/api/products?limit=5&sort=-stock`);
+      if (stockRes.ok) {
+        const stockData = await stockRes.json();
+        const stats = stockData.data || stockData;
+        const prods = stats.products || stats || [];
+        mostStockedProducts = prods.map(p => ({
+          label: p.name,
+          value: p.stock || 0
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch most stocked products from catalog-service:', err.message);
+    }
+
+    // 4. Get order stats and timeline data from order-service
+    let totalOrders = 0;
+    let pendingOrders = 0;
+    let totalRevenue = 0;
+    let recentOrders = [];
+    let revenueTimeline = [];
+    let bestSellers = [];
+    let brandSales = [];
+    try {
+      const orderUrl = process.env.ORDER_SERVICE_URL || 'http://order-service:3003';
+      
+      // Forward client query parameters (date, month, year, quarter)
+      const queryParams = new URLSearchParams(req.query).toString();
+      
+      const orderRes = await fetch(`${orderUrl}/api/admin/orders/stats/summary?${queryParams}`, {
+        headers: { 
+          'x-internal-key': process.env.INTERNAL_API_KEY || 'internal123'
+        }
+      });
+      if (orderRes.ok) {
+        const orderData = await orderRes.json();
+        if (orderData.success && orderData.data) {
+          const stats = orderData.data;
+          totalOrders = stats.totalOrders || 0;
+          pendingOrders = stats.pendingOrders || 0;
+          totalRevenue = stats.totalRevenue || 0;
+          recentOrders = stats.recentOrders || [];
+          revenueTimeline = stats.revenueTimeline || [];
+          bestSellers = stats.bestSellers || [];
+          brandSales = stats.brandSales || [];
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch order stats from order-service:', err.message);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalProducts,
+        totalOrders,
+        pendingOrders,
+        totalRevenue,
+        totalUsers,
+        recentOrders,
+        revenueTimeline,
+        bestSellers,
+        mostStockedProducts,
+        brandSales
+      }
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+};
 
 // Get all orders (admin only)
 // exports.getAllOrders = async (req, res) => {
