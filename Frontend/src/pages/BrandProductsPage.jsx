@@ -47,7 +47,7 @@ export default function BrandProductsPage() {
             imageUrl:
               p.images?.length > 0
                 ? p.images[0]
-                : "https://via.placeholder.com/300",
+                : "https://placehold.co/300x300?text=No+Image",
           }));
 
           setProducts(formattedProducts);
