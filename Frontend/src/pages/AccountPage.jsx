@@ -26,7 +26,7 @@ function ProfileTab({ user }) {
     e.preventDefault();
     try {
       // Endpoint: PUT /users/:id (Backend API để cập nhật thông tin)
-      const updatedUser = await fetchApi(`/users/${user.id}`, {
+      const updatedUser = await fetchApi(`/users/${user._id}`, {
         method: "PUT",
         body: JSON.stringify(formData),
       });
@@ -44,10 +44,10 @@ function ProfileTab({ user }) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Thông tin tài khoản</h2>
+      <h2 className="text-2xl font-bold mb-4 dark:text-white">Thông tin tài khoản</h2>
       <form onSubmit={handleUpdateProfile} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-bold mb-1">
+          <label htmlFor="name" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Họ và tên
           </label>
           <input
@@ -57,11 +57,11 @@ function ProfileTab({ user }) {
             value={formData.name}
             onChange={handleInputChange}
             required
-            className="w-full p-3 border rounded-md"
+            className="w-full p-3 border rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-bold mb-1">
+          <label htmlFor="email" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Email
           </label>
           <input
@@ -69,11 +69,11 @@ function ProfileTab({ user }) {
             id="email"
             value={user.email}
             readOnly
-            className="w-full p-3 border rounded-md bg-gray-100 text-gray-500"
+            className="w-full p-3 border rounded-md bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600"
           />
         </div>
         <div>
-          <label htmlFor="phone" className="block text-sm font-bold mb-1">
+          <label htmlFor="phone" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Số điện thoại
           </label>
           <input
@@ -82,11 +82,11 @@ function ProfileTab({ user }) {
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
+            className="w-full p-3 border rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
           />
         </div>
         <div>
-          <label htmlFor="address" className="block text-sm font-bold mb-1">
+          <label htmlFor="address" className="block text-sm font-bold mb-1 dark:text-gray-200">
             Địa chỉ
           </label>
           <input
@@ -95,7 +95,7 @@ function ProfileTab({ user }) {
             name="address"
             value={formData.address}
             onChange={handleInputChange}
-            className="w-full p-3 border rounded-md"
+            className="w-full p-3 border rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
           />
         </div>
         <button
@@ -235,8 +235,8 @@ function OrdersTab({ currentUser }) {
   if (loading) {
     return (
       <div>
-        <h2 className="text-2xl font-bold mb-4">Lịch sử đơn hàng</h2>
-        <p>Đang tải đơn hàng...</p>
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">Lịch sử đơn hàng</h2>
+        <p className="dark:text-gray-300">Đang tải đơn hàng...</p>
       </div>
     );
   }
@@ -244,16 +244,16 @@ function OrdersTab({ currentUser }) {
   if (!Array.isArray(orders) || orders.length === 0) {
     return (
       <div>
-        <h2 className="text-2xl font-bold mb-4">Lịch sử đơn hàng</h2>
-        <p>Bạn chưa có đơn hàng nào.</p>
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">Lịch sử đơn hàng</h2>
+        <p className="dark:text-gray-300">Bạn chưa có đơn hàng nào.</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">
-        Lịch sử đơn hàng ({Array.isArray(orders) ? orders.length : 0})
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">
+          Lịch sử đơn hàng ({Array.isArray(orders) ? orders.length : 0})
       </h2>
       
       {/* Search box */}
@@ -264,7 +264,7 @@ function OrdersTab({ currentUser }) {
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Tìm theo mã đơn hàng hoặc tên sản phẩm..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
           />
           {searchQuery && (
             <button
@@ -284,7 +284,7 @@ function OrdersTab({ currentUser }) {
       
       <div className="space-y-4">
         {Array.isArray(filteredOrders) && filteredOrders.map((order) => (
-          <div key={order._id} className="p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow">
+          <div key={order._id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
               <div>
                 <p className="font-bold text-lg">
@@ -318,6 +318,7 @@ function OrdersTab({ currentUser }) {
                 <span className="font-medium">
                   {order.paymentMethod === 'cod' ? 'COD' : 
                    order.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : 
+                   order.paymentMethod === 'momo' ? 'MoMo' :
                    order.paymentMethod.toUpperCase()}
                 </span>
               </div>
@@ -388,19 +389,19 @@ export default function AccountPage() {
 
   // Nếu đã đăng nhập, hiển thị layout 2 cột
   return (
-    <div className="container w-[90%] max-w-[1000px] mx-auto mt-10 py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">Tài Khoản Của Bạn</h1>
+    <div className="container w-[90%] max-w-[1000px] mx-auto mt-10 py-10 dark:text-gray-100">
+      <h1 className="text-3xl font-bold text-center mb-8 dark:text-white">Tài Khoản Của Bạn</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* CỘT TRÁI: MENU ĐIỀU HƯỚNG */}
         <div className="md:col-span-1">
-          <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-md">
+          <div className="flex flex-col gap-2 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md dark:shadow-gray-900/50">
             <button
               onClick={() => setActiveTab("profile")}
               className={`w-full text-left p-3 rounded-md font-bold ${
                 activeTab === "profile"
                   ? "bg-primary text-white"
-                  : "hover:bg-gray-100"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               Thông tin tài khoản
@@ -410,14 +411,14 @@ export default function AccountPage() {
               className={`w-full text-left p-3 rounded-md font-bold ${
                 activeTab === "orders"
                   ? "bg-primary text-white"
-                  : "hover:bg-gray-100"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200"
               }`}
             >
               Lịch sử đơn hàng
             </button>
             <button
               onClick={handleLogout}
-              className="w-full text-left p-3 rounded-md font-bold text-red-500 hover:bg-gray-100"
+              className="w-full text-left p-3 rounded-md font-bold text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               Đăng xuất
             </button>
@@ -425,7 +426,7 @@ export default function AccountPage() {
         </div>
 
         {/* CỘT PHẢI: NỘI DUNG TAB */}
-        <div className="md:col-span-3 bg-white p-8 rounded-lg shadow-md">
+        <div className="md:col-span-3 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md dark:shadow-gray-900/50">
           {activeTab === "profile" && <ProfileTab user={currentUser} />}
           {/* SỬA: Truyền currentUser prop cho OrdersTab để khớp với định nghĩa hàm */}
           {activeTab === "orders" && <OrdersTab currentUser={currentUser} />}
