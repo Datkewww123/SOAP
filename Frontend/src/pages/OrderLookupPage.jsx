@@ -237,10 +237,13 @@ export default function OrderLookupPage() {
                           src={
                             item.imageUrl ||
                             item.image ||
-                            "https://via.placeholder.com/60"
+                            "https://placehold.co/150x150?text=No+Image"
                           }
                           alt={item.name}
                           className="w-16 h-16 object-cover rounded-md border"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://placehold.co/150x150?text=No+Image";
+                          }}
                         />
                         <div className="flex-1">
                           <p className="font-medium">{item.name}</p>
