@@ -3,6 +3,7 @@ const router = express.Router();
 const orderController = require("../controllers/orderController");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const internalAuth = require("../middleware/internalAuth");
 
 /**
  * @swagger
@@ -262,6 +263,9 @@ router.put("/:id", auth, admin, orderController.updateOrder);
  *         description: Không tìm thấy đơn hàng
  */
 router.delete("/:id", auth, orderController.deleteOrder);
+
+// Internal: Cập nhật trạng thái thanh toán (từ payment-service)
+router.patch("/:id/payment-status", internalAuth, orderController.updatePaymentStatus);
 
 module.exports = router;
 /**
