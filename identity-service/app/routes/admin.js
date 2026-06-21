@@ -50,7 +50,7 @@ router.use(admin);
  *       403:
  *         description: Không có quyền (chỉ admin)
  */
-// router.get('/stats', adminController.getStats);
+router.get('/stats', adminController.getStats);
 
 /**
  * @swagger
