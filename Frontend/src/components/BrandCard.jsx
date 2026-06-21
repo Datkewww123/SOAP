@@ -6,7 +6,7 @@ export default function BrandCard({ imageUrl, alt, linkUrl }) {
       <img
         src={imageUrl}
         alt={alt}
-        className="w-full rounded-lg border border-[#eee] transition-all duration-300 hover:grayscale-[80%]"
+        className="w-full rounded-lg border border-[#eee] dark:border-gray-700 transition-all duration-300 hover:grayscale-[80%]"
       />
     </Link>
   );
