@@ -16,6 +16,7 @@ import PaymentReturnPage from "./pages/PaymentReturnPage";
 import AccountPage from "./pages/AccountPage";
 import SearchPage from "./pages/SearchPage";
 import BrandProductsPage from "./pages/BrandProductsPage";
+import NewsDetailPage from "./pages/NewsDetailPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -38,6 +39,10 @@ import AdminFloatingButton from "./components/AdminFloatingButton";
 
 function App() {
   const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   useEffect(() => {
     // Web Audio API để tổng hợp âm thanh "ting"
@@ -122,6 +127,7 @@ function App() {
           <Route path="/payment/return" element={<PaymentReturnPage />} />
           <Route path="/payment/mock" element={<MockPaymentPage />} />
           <Route path="/hang/:brandSlug" element={<BrandProductsPage />} />
+          <Route path="/tin-tuc/:slug" element={<NewsDetailPage />} />
 
           <Route path="/dich-vu/sua-chua-giay" element={<RepairService />} />
 
