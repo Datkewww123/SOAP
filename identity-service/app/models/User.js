@@ -1,68 +1,57 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const mysqlDatabase = require('../database/mysql.database');
 
-const addressSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  phone: { type: String, required: true },
-  province: { type: String, required: true },
-  district: { type: String, required: true },
-  ward: { type: String, required: true },
-  street: { type: String, required: true },
-  isDefault: { type: Boolean, default: false }
-}, { timestamps: true });
+let User, Address;
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true },
-  name: { type: String, required: true, trim: true },
-  phone: { type: String, default: '', trim: true },
-  avatar: { type: String, default: '' }, // URL ảnh đại diện
-  dateOfBirth: Date, // Ngày sinh
-  gender: { type: String, enum: ['nam', 'nu', 'khac'], default: 'khac' },
-  
-  // Addresses (mảng địa chỉ giao hàng)
-  addresses: [addressSchema],
-  
-  // Legacy field for backward compatibility
-  address: { type: String, default: '' },
-  
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  isActive: { type: Boolean, default: true },
-  isVerified: { type: Boolean, default: false }, // Email đã xác thực
-  
-  // Stats
-  totalOrders: { type: Number, default: 0 }, // Tổng số đơn hàng
-  totalSpent: { type: Number, default: 0 }, // Tổng tiền đã chi
-  
-  lastLoginAt: Date
-}, { timestamps: true }, { timestamps: true });
+function initModels() {
+  const sequelize = mysqlDatabase.getSequelize();
 
-// Indexes
-userSchema.index({ email: 1, username: 1 });
-userSchema.index({ isActive: 1 });
-userSchema.index({ createdAt: -1 });
-
-// Instance methods
-userSchema.methods.getDefaultAddress = function() {
-  return this.addresses.find(addr => addr.isDefault) || this.addresses[0];
-};
-
-userSchema.methods.addAddress = function(addressData) {
-  // Nếu đây là địa chỉ đầu tiên hoặc được đánh dấu default, set isDefault = true
-  if (this.addresses.length === 0 || addressData.isDefault) {
-    // Bỏ default của các địa chỉ khác
-    this.addresses.forEach(addr => addr.isDefault = false);
-    addressData.isDefault = true;
-  }
-  this.addresses.push(addressData);
-  return this.save();
-};
-
-userSchema.methods.setDefaultAddress = function(addressId) {
-  this.addresses.forEach(addr => {
-    addr.isDefault = addr._id.toString() === addressId.toString();
+  User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    username: { type: DataTypes.STRING(50), allowNull: false, unique: true },
+    email: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    password: { type: DataTypes.STRING(255), allowNull: false },
+    name: { type: DataTypes.STRING(100), allowNull: false },
+    phone: { type: DataTypes.STRING(20), defaultValue: '' },
+    avatar: { type: DataTypes.STRING(500), defaultValue: '' },
+    date_of_birth: { type: DataTypes.DATEONLY },
+    gender: { type: DataTypes.ENUM('nam', 'nu', 'unisex'), defaultValue: 'unisex' },
+    address: { type: DataTypes.STRING(255), defaultValue: '' },
+    role: { type: DataTypes.ENUM('user', 'admin'), defaultValue: 'user' },
+    is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+    is_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
+    total_orders: { type: DataTypes.INTEGER, defaultValue: 0 },
+    total_spent: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0 },
+    last_login_at: { type: DataTypes.DATE }
+  }, {
+    tableName: 'users',
+    timestamps: true,
+    underscored: true
   });
-  return this.save();
-};
 
-module.exports = mongoose.model('User', userSchema);
+  Address = sequelize.define('Address', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    full_name: { type: DataTypes.STRING(100), allowNull: false },
+    phone: { type: DataTypes.STRING(20), allowNull: false },
+    province: { type: DataTypes.STRING(100), allowNull: false },
+    district: { type: DataTypes.STRING(100), allowNull: false },
+    ward: { type: DataTypes.STRING(100) },
+    street: { type: DataTypes.STRING(255), allowNull: false },
+    is_default: { type: DataTypes.BOOLEAN, defaultValue: false }
+  }, {
+    tableName: 'addresses',
+    timestamps: true,
+    underscored: true
+  });
+
+  User.hasMany(Address, { foreignKey: 'user_id', as: 'addresses', onDelete: 'CASCADE' });
+  Address.belongsTo(User, { foreignKey: 'user_id' });
+
+  return { User, Address };
+}
+
+function getUser() { return User; }
+function getAddress() { return Address; }
+
+module.exports = { initModels, getUser, getAddress };
