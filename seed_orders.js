@@ -11,6 +11,7 @@
  *   - Đã có ít nhất 1 user trong DB
  */
 
+require('dotenv').config(); // Load root .env
 require('dotenv').config({ path: './catalog-service/.env' });
 
 const { Sequelize, DataTypes } = require('sequelize');

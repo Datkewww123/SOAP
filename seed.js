@@ -8,6 +8,7 @@
  * Yêu cầu: MySQL container đang chạy (docker compose up mysql -d)
  */
 
+require('dotenv').config(); // Load root .env
 require('dotenv').config({ path: './catalog-service/.env' });
 
 const { Sequelize, DataTypes } = require('sequelize');
