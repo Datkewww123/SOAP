@@ -449,7 +449,44 @@ exports.getOrderStatsSummary = async (req, res) => {
       group: ['name'], order: [[literal('value'), 'DESC']], limit: 5, raw: true
     });
 
-    res.json({ success: true, data: { totalOrders, pendingOrders, totalRevenue, recentOrders, revenueTimeline, bestSellers: bestSellers.map(b => ({ label: b.name, value: Number(b.value) })), brandSales: [] } });
+    let brandSales = [];
+    try {
+      // 1. Get all order items from delivered orders in the time period
+      const deliveredItems = await OrderItem.findAll({
+        include: [{ 
+          model: Order, 
+          as: 'Order', 
+          where: { status: 'delivered', ...dateWhere }, 
+          attributes: [] 
+        }],
+        attributes: ['product_id', 'quantity', 'price'],
+        raw: true
+      });
+
+      // 2. Fetch all products from catalog-service to map product_id -> brand name
+      const prodRes = await axios.get(`${CATALOG_SERVICE_URL}/api/products?limit=1000`);
+      const products = prodRes.data?.data || prodRes.data || [];
+      const productToBrandMap = {};
+      products.forEach(p => {
+        const brandName = p.brand?.name || 'Khác';
+        productToBrandMap[p.id || p._id] = brandName;
+      });
+
+      // 3. Aggregate sales by brand
+      const brandSalesMap = {};
+      deliveredItems.forEach(item => {
+        const brandName = productToBrandMap[item.product_id] || 'Khác';
+        const sales = Number(item.quantity || 0) * Number(item.price || 0);
+        brandSalesMap[brandName] = (brandSalesMap[brandName] || 0) + sales;
+      });
+
+      // 4. Convert to array of { label, value }
+      brandSales = Object.entries(brandSalesMap).map(([label, value]) => ({ label, value }));
+    } catch (err) {
+      console.error('Failed to fetch/calculate brand sales:', err.message);
+    }
+
+    res.json({ success: true, data: { totalOrders, pendingOrders, totalRevenue, recentOrders, revenueTimeline, bestSellers: bestSellers.map(b => ({ label: b.name, value: Number(b.value) })), brandSales } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -23,7 +23,7 @@ exports.getStats = async (req, res) => {
       const stockRes = await fetch(`${catalogUrl}/api/products?limit=5&sort=-stock`);
       if (stockRes.ok) {
         const stockData = await stockRes.json();
-        const prods = (stockData.data || stockData).products || [];
+        const prods = stockData.data || stockData || [];
         mostStockedProducts = prods.map(p => ({ label: p.name, value: p.stock || 0 }));
       }
     } catch (err) {
