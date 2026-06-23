@@ -383,7 +383,7 @@ export default function Header() {
                     {/* Item: NIKE */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-nike"
+                        to="/hang/nike"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH NIKE
@@ -391,7 +391,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/nike-mercurial"
+                            to="/hang/nike?search=Mercurial"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Nike Mercurial
@@ -399,7 +399,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nike-phamtom"
+                            to="/hang/nike?search=Phantom"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Nike Phantom
@@ -407,7 +407,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nike-tiempo"
+                            to="/hang/nike?search=Tiempo"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Nike Tiempo
@@ -418,7 +418,7 @@ export default function Header() {
                     {/* Item: ADIDAS */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-adidas"
+                        to="/hang/adidas"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH ADIDAS
@@ -434,7 +434,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/adidas-x"
+                            to="/hang/adidas?search=X"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Adidas X
@@ -442,7 +442,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/adidas-predator"
+                            to="/hang/adidas?search=Predator"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Adidas Predator
@@ -450,7 +450,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/adidas-copa"
+                            to="/hang/adidas?search=Copa"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Adidas Copa
@@ -462,7 +462,7 @@ export default function Header() {
                     {/* Item: PUMA */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-puma"
+                        to="/hang/puma"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH PUMA
@@ -470,7 +470,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/puma-future"
+                            to="/hang/puma?search=Future"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Puma Future
@@ -478,7 +478,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/puma-king"
+                            to="/hang/puma?search=King"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Puma King
@@ -486,7 +486,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/puma-ultra"
+                            to="/hang/puma?search=Ultra"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Puma Ultra
@@ -498,7 +498,7 @@ export default function Header() {
                     {/* Item: MIZUNO */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-mizuno"
+                        to="/hang/mizuno"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH MIZUNO
@@ -530,7 +530,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/mizuno-rebula"
+                            to="/hang/mizuno?search=Rebula"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Mizuno Rebula
@@ -542,7 +542,7 @@ export default function Header() {
                     {/* Item: ASICS */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-asic"
+                        to="/hang/asics"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH ASICS
@@ -550,7 +550,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/asics-calcetto"
+                            to="/hang/asics?search=Calcetto"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Asics Calcetto
@@ -558,7 +558,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/asics-destaque"
+                            to="/hang/asics?search=Destaque"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Asics Destaque
@@ -566,7 +566,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/asics-toque"
+                            to="/hang/asics?search=Toque"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Asics Toque
@@ -574,7 +574,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/asics-ultrezza"
+                            to="/hang/asics?search=Ultrezza"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Asics Ultrezza
@@ -586,7 +586,7 @@ export default function Header() {
                     {/* Item: NMS */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-nms"
+                        to="/hang/nms"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH NMS
@@ -594,7 +594,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/nms-attack"
+                            to="/hang/nms?search=Attack"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             NMS Attack
@@ -602,7 +602,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nms-capitan"
+                            to="/hang/nms?search=Capitan"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             NMS Capitan
@@ -610,7 +610,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nms-maestri"
+                            to="/hang/nms?search=Maestri"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             NMS Maestri
@@ -618,7 +618,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nms-spider"
+                            to="/hang/nms?search=Spider"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             NMS Spider
@@ -626,7 +626,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/nms-victory"
+                            to="/hang/nms?search=Victory"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             NMS Victory
@@ -638,7 +638,7 @@ export default function Header() {
                     {/* Item: KAMITO */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/giay-da-banh-kamito"
+                        to="/hang/kamito"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH KAMITO
@@ -646,7 +646,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/ta11"
+                            to="/hang/kamito?search=TA11"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             TA11
@@ -654,7 +654,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/qh19"
+                            to="/hang/kamito?search=QH19"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             QH19
@@ -662,7 +662,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/velocidad"
+                            to="/hang/kamito?search=Velocidad"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             Velocidad
@@ -674,7 +674,7 @@ export default function Header() {
                     {/* Item: ZOCKER */}
                     <li className="relative group/submenu">
                       <Link
-                        to="/danh-muc/diay-da-banh-zocker"
+                        to="/hang/zocker"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
                         GIÀY ĐÁ BANH ZOCKER
@@ -682,7 +682,7 @@ export default function Header() {
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
                           <Link
-                            to="/danh-muc/zoker-inspire"
+                            to="/hang/zocker?search=Inspire"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             ZOCKER Inspire
@@ -690,7 +690,7 @@ export default function Header() {
                         </li>
                         <li>
                           <Link
-                            to="/danh-muc/zocker-space"
+                            to="/hang/zocker?search=Space"
                             className="block py-2.5 px-3 font-normal normal-case hover:bg-[#555] after:content-['']"
                           >
                             ZOCKER Space
@@ -702,7 +702,7 @@ export default function Header() {
                     {/* Item: JOMA */}
                     <li>
                       <Link
-                        to="/danh-muc/giay-da-banh-joma"
+                        to="/hang/joma"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555]"
                       >
                         GIÀY ĐÁ BANH JOMA
@@ -971,31 +971,31 @@ export default function Header() {
               <div className={`overflow-hidden transition-all duration-300 ${mobileSubOpen === 'thuonghieu' ? 'max-h-96' : 'max-h-0'}`}>
                 <ul className="bg-black/20">
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-nike" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Nike</Link>
+                     <Link to="/hang/nike" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Nike</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-adidas" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Adidas</Link>
+                    <Link to="/hang/adidas" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Adidas</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-puma" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Puma</Link>
+                    <Link to="/hang/puma" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Puma</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-mizuno" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Mizuno</Link>
+                    <Link to="/hang/mizuno" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Mizuno</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-asic" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Asics</Link>
+                    <Link to="/hang/asics" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Asics</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-nms" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>NMS</Link>
+                    <Link to="/hang/nms" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>NMS</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-kamito" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Kamito</Link>
+                    <Link to="/hang/kamito" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Kamito</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/diay-da-banh-zocker" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Zocker</Link>
+                    <Link to="/hang/zocker" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Zocker</Link>
                   </li>
                   <li>
-                    <Link to="/danh-muc/giay-da-banh-joma" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Joma</Link>
+                    <Link to="/hang/joma" className="block py-2 pl-8 pr-5 text-sm text-gray-300 hover:bg-gray-700" onClick={() => setMobileOpen(false)}>Joma</Link>
                   </li>
                 </ul>
               </div>
