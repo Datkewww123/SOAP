@@ -64,10 +64,13 @@ exports.getProducts = async (req, res) => {
     const Product = getProduct();
     const Brand = getBrand();
     const Category = getCategory();
-    const { page = 1, limit = 12, category, brand, minPrice, maxPrice, search, sort = '-created_at', footType } = req.query;
+    const { page = 1, limit = 12, category, brand, minPrice, maxPrice, search, sort = '-created_at', footType, showAll } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    const where = { is_active: true };
+    const where = {};
+    if (showAll !== 'true') {
+      where.is_active = true;
+    }
 
     // Hỗ trợ cả category ID (số) và slug (chuỗi)
     if (category) {
