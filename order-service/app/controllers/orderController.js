@@ -183,6 +183,23 @@ exports.updateOrder = async (req, res) => {
 
     const updates = {};
     if (status && status !== order.status) {
+      const current = order.status;
+      let isValidTransition = false;
+      if (current === 'pending') {
+        isValidTransition = (status === 'confirmed' || status === 'cancelled');
+      } else if (current === 'confirmed') {
+        isValidTransition = (status === 'shipping' || status === 'cancelled');
+      } else if (current === 'shipping') {
+        isValidTransition = (status === 'delivered' || status === 'cancelled');
+      } else {
+        isValidTransition = false;
+      }
+
+      if (!isValidTransition) {
+        return res.status(400).json({
+          error: `Không thể chuyển trạng thái từ ${current} sang ${status}. Trạng thái phải đi tuần tự: pending -> confirmed -> shipping -> delivered.`
+        });
+      }
       updates.status = status;
       if (status === 'confirmed') updates.confirmed_at = new Date();
       if (status === 'shipping')  updates.shipping_at  = new Date();
@@ -238,7 +255,7 @@ exports.cancelOrder = async (req, res) => {
     const order = await Order.findByPk(req.params.id, { include: [{ model: OrderItem, as: 'items' }] });
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.user_id !== req.user.id && req.user.role !== 'admin') return res.status(403).json({ error: 'Không có quyền hủy' });
-    if (!['pending', 'confirmed'].includes(order.status)) return res.status(400).json({ error: 'Không thể hủy đơn hàng ở trạng thái hiện tại' });
+    if (!['pending', 'confirmed', 'shipping'].includes(order.status)) return res.status(400).json({ error: 'Không thể hủy đơn hàng ở trạng thái hiện tại' });
 
     await order.update({ status: 'cancelled', cancelled_at: new Date(), cancel_reason: cancelReason });
 
@@ -352,6 +369,26 @@ exports.updateOrderStatus = async (req, res) => {
 
     const order = await Order.findByPk(req.params.id, { include: [{ model: OrderItem, as: 'items' }] });
     if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (status && status !== order.status) {
+      const current = order.status;
+      let isValidTransition = false;
+      if (current === 'pending') {
+        isValidTransition = (status === 'confirmed' || status === 'cancelled');
+      } else if (current === 'confirmed') {
+        isValidTransition = (status === 'shipping' || status === 'cancelled');
+      } else if (current === 'shipping') {
+        isValidTransition = (status === 'delivered' || status === 'cancelled');
+      } else {
+        isValidTransition = false;
+      }
+
+      if (!isValidTransition) {
+        return res.status(400).json({
+          error: `Không thể chuyển trạng thái từ ${current} sang ${status}. Trạng thái phải đi tuần tự: pending -> confirmed -> shipping -> delivered.`
+        });
+      }
+    }
 
     const updates = { status };
     if (status === 'confirmed') updates.confirmed_at = new Date();

@@ -195,12 +195,25 @@ export default function AdminOrdersPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <select
                     value={order.status}
+                    disabled={order.status === "delivered" || order.status === "cancelled"}
                     onChange={(e) =>
                       handleUpdateStatusClick(order._id, order.orderCode, e.target.value)
                     }
-                    className="border border-gray-300 rounded-md p-1 text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 cursor-pointer"
+                    className="border border-gray-300 rounded-md p-1 text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {STATUSES.map((s) => (
+                    {(() => {
+                      const current = order.status;
+                      if (current === "pending") {
+                        return ["pending", "confirmed", "cancelled"];
+                      }
+                      if (current === "confirmed") {
+                        return ["confirmed", "shipping", "cancelled"];
+                      }
+                      if (current === "shipping") {
+                        return ["shipping", "delivered", "cancelled"];
+                      }
+                      return [current];
+                    })().map((s) => (
                       <option key={s} value={s}>
                         {s.toUpperCase()}
                       </option>

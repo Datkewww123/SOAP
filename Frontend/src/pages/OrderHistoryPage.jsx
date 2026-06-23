@@ -39,6 +39,8 @@ export default function OrderHistoryPage() {
     orderId: null,
     orderCode: null,
   });
+  const [cancellingOrderId, setCancellingOrderId] = useState(null);
+  const [cancelReasonText, setCancelReasonText] = useState("");
 
   useEffect(() => {
     if (currentUser === null) {
@@ -69,6 +71,29 @@ export default function OrderHistoryPage() {
       }
     } catch (err) {
       toast.error(err.message || "Xác nhận đơn hàng thất bại.");
+    }
+  };
+
+  const handleCancelOrderSubmit = async (orderId) => {
+    if (!cancelReasonText.trim()) {
+      toast.error("Vui lòng nhập lý do hủy đơn hàng.");
+      return;
+    }
+    try {
+      const response = await fetchApi(`/orders/${orderId}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ cancelReason: cancelReasonText }),
+      });
+      if (response.success || response.data) {
+        toast.success("Hủy đơn hàng thành công!");
+        setCancellingOrderId(null);
+        setCancelReasonText("");
+        fetchOrders();
+      } else {
+        toast.error("Có lỗi xảy ra khi hủy đơn hàng.");
+      }
+    } catch (error) {
+      toast.error(error.message || "Hủy đơn hàng thất bại.");
     }
   };
 
@@ -276,16 +301,60 @@ export default function OrderHistoryPage() {
                   </div>
                 </div>
 
-                {order.status === "shipping" && (
-                  <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
-                    <button
-                      onClick={() => handleConfirmReceived(order._id, order.orderCode)}
-                      className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-all shadow-md shadow-green-500/10 flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
-                    >
-                      <i className="fas fa-check" />
-                      Đã nhận được hàng
-                    </button>
+                {/* Cancel / Confirm Actions */}
+                {cancellingOrderId === order._id ? (
+                  <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Lý do hủy đơn hàng *
+                    </label>
+                    <textarea
+                      value={cancelReasonText}
+                      onChange={(e) => setCancelReasonText(e.target.value)}
+                      placeholder="Vui lòng nhập lý do hủy đơn hàng (bắt buộc)..."
+                      required
+                      rows={2}
+                      className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                    />
+                    <div className="flex justify-end gap-2 text-sm">
+                      <button
+                        onClick={() => setCancellingOrderId(null)}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-colors cursor-pointer"
+                      >
+                        Đóng
+                      </button>
+                      <button
+                        onClick={() => handleCancelOrderSubmit(order._id)}
+                        disabled={!cancelReasonText.trim()}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Xác nhận Hủy
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  ["pending", "confirmed", "shipping"].includes(order.status) && (
+                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setCancellingOrderId(order._id);
+                          setCancelReasonText("");
+                        }}
+                        className="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold transition-all cursor-pointer hover:scale-[1.02]"
+                      >
+                        <i className="fas fa-times-circle mr-1" />
+                        Hủy đơn hàng
+                      </button>
+                      {order.status === "shipping" && (
+                        <button
+                          onClick={() => handleConfirmReceived(order._id, order.orderCode)}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-all shadow-md shadow-green-500/10 flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
+                        >
+                          <i className="fas fa-check" />
+                          Đã nhận được hàng
+                        </button>
+                      )}
+                    </div>
+                  )
                 )}
               </div>
             ))}
