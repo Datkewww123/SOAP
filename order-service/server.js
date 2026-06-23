@@ -33,7 +33,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 async function startServer() {
-    await database.init();
+    await database.initDatabase(); // ← đổi từ database.init()
     const PORT = process.env.PORT || 3003;
     app.listen(PORT, () => {
         console.log(`Order Service running on port ${PORT}`);
