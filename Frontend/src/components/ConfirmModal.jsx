@@ -23,7 +23,7 @@ export default function ConfirmModal({ isOpen, title, message, type = 'warning',
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="relative bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden border border-gray-100 dark:border-slate-700 animate-scale-up transform transition-all duration-300">
         
         {/* Bouncing Icon */}
