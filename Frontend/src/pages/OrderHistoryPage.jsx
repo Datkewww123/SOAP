@@ -88,8 +88,28 @@ export default function OrderHistoryPage() {
         ordersList = response.orders;
       }
       if (Array.isArray(ordersList)) {
-        setOrders(ordersList);
-        setFilteredOrders(ordersList);
+        const mappedOrdersList = ordersList.map(order => ({
+          ...order,
+          orderCode: order.order_code || order.orderCode,
+          paymentMethod: order.payment_method || order.paymentMethod || "cod",
+          paymentStatus: order.payment_status || order.paymentStatus,
+          shippingAddress: order.shippingAddress || {
+            fullName: order.shipping_full_name || order.shippingAddress?.fullName,
+            phone: order.shipping_phone || order.shippingAddress?.phone,
+            province: order.shipping_province || order.shippingAddress?.province,
+            district: order.shipping_district || order.shippingAddress?.district,
+            ward: order.shipping_ward || order.shippingAddress?.ward,
+            street: order.shipping_street || order.shippingAddress?.street,
+            note: order.shipping_note || order.shippingAddress?.note,
+          },
+          items: (order.items || []).map(item => ({
+            ...item,
+            selectedSize: item.selected_size || item.selectedSize,
+            selectedColor: item.selected_color || item.selectedColor,
+          }))
+        }));
+        setOrders(mappedOrdersList);
+        setFilteredOrders(mappedOrdersList);
       } else {
         setOrders([]);
         setFilteredOrders([]);

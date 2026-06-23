@@ -43,6 +43,15 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
     }));
   };
 
+  const handlePriceChange = (e) => {
+    const rawVal = e.target.value;
+    const cleanVal = rawVal.replace(/\D/g, "");
+    setFormData((prev) => ({
+      ...prev,
+      price: cleanVal === "" ? 0 : Number(cleanVal),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -103,10 +112,10 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
               className="flex-1 border p-3 rounded"
             />
             <input
-              type="number"
+              type="text"
               name="price"
-              value={formData.price}
-              onChange={handleChange}
+              value={formData.price ? formData.price.toLocaleString("vi-VN") : ""}
+              onChange={handlePriceChange}
               placeholder="Giá (VNĐ)"
               required
               className="w-32 border p-3 rounded"
