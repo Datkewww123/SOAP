@@ -386,7 +386,7 @@ export default function Header() {
                         to="/hang/nike"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH NIKE
+                        NIKE
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -421,7 +421,7 @@ export default function Header() {
                         to="/hang/adidas"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH ADIDAS
+                        ADIDAS
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -465,7 +465,7 @@ export default function Header() {
                         to="/hang/puma"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH PUMA
+                        PUMA
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -501,7 +501,7 @@ export default function Header() {
                         to="/hang/mizuno"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH MIZUNO
+                        MIZUNO
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -545,7 +545,7 @@ export default function Header() {
                         to="/hang/asics"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH ASICS
+                        ASICS
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -589,7 +589,7 @@ export default function Header() {
                         to="/hang/nms"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH NMS
+                        NMS
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -641,7 +641,7 @@ export default function Header() {
                         to="/hang/kamito"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH KAMITO
+                        KAMITO
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -677,7 +677,7 @@ export default function Header() {
                         to="/hang/zocker"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555] after:content-['>'] after:font-bold"
                       >
-                        GIÀY ĐÁ BANH ZOCKER
+                        ZOCKER
                       </Link>
                       <ul className="submenu hidden group-hover/submenu:block absolute left-full top-0 bg-[#333] min-w-[220px] p-2.5 shadow-lg rounded -mt-2.5">
                         <li>
@@ -705,7 +705,7 @@ export default function Header() {
                         to="/hang/joma"
                         className="flex justify-between items-center py-2.5 px-3 font-bold text-[#f0f0f0] transition-colors hover:bg-[#555]"
                       >
-                        GIÀY ĐÁ BANH JOMA
+                        JOMA
                       </Link>
                     </li>
                   </ul>
