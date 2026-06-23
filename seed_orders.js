@@ -196,7 +196,7 @@ async function seed() {
   console.log(`👤 Tìm thấy ${users.length} user(s): ${users.map(u => u.email).join(', ')}\n`);
 
   // Lấy products
-  const products = await Product.findAll({ limit: 50 });
+  const products = await Product.findAll();
   if (products.length === 0) {
     console.error('❌ Không có sản phẩm nào! Hãy chạy seed.js trước.');
     process.exit(1);
