@@ -244,6 +244,7 @@ router.put("/:id", auth, admin, orderController.updateOrder);
 router.delete("/:id", auth, orderController.deleteOrder);
 
 // Xác nhận đã nhận hàng (User)
+router.post("/:id/cancel", auth, orderController.cancelOrder);
 router.post("/:id/receive", auth, orderController.receiveOrder);
 
 // Internal: Cập nhật trạng thái thanh toán (từ payment-service)
