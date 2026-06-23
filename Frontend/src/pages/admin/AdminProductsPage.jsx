@@ -14,8 +14,8 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
     name: product?.name || "",
     price: product?.price || 0,
     description: product?.description || "",
-    category: product?.category?._id || categories[0]?._id,
-    brand: product?.brand?._id || brands[0]?._id,
+    category: product?.category?.id || product?.category_id || (categories[0]?.id || ""),
+    brand: product?.brand?.id || product?.brand_id || (brands[0]?.id || ""),
 
     // THÊM: Chuyển mảng URL thành chuỗi cách nhau bằng dấu phẩy
     images: product?.images?.join(", ") || "",
@@ -124,7 +124,7 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
               {/* Option mặc định */}
               <option value="">-- Chọn Danh mục --</option>
               {categories.map((c) => (
-                <option key={c._id} value={c._id}>
+                <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
               ))}
@@ -139,7 +139,7 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
               {/* Option mặc định */}
               <option value="">-- Chọn Thương hiệu --</option>
               {brands.map((b) => (
-                <option key={b._id} value={b._id}>
+                <option key={b.id} value={b.id}>
                   {b.name}
                 </option>
               ))}
@@ -281,6 +281,7 @@ export default function AdminProductsPage() {
       const query = new URLSearchParams({
         page,
         limit: PRODUCTS_PER_PAGE,
+        showAll: "true",
       }).toString();
       const productResponse = await fetchApi(`/products?${query}`);
       const data = productResponse.data || productResponse;
