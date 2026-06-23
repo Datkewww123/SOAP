@@ -91,7 +91,7 @@ export default function AdminOrdersPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       toast.success(
-        `Cập nhật trạng thái đơn hàng ${orderCode || '#' + orderId.slice(-6).toUpperCase()} thành công.`
+        `Cập nhật trạng thái đơn hàng ${orderCode || '#' + String(orderId).slice(-6).toUpperCase()} thành công.`
       );
       fetchOrders(pagination.page, searchQuery); // Tải lại trang hiện tại
     } catch (error) {
@@ -169,7 +169,7 @@ export default function AdminOrdersPage() {
             {orders.map((order) => (
               <tr key={order._id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.orderCode || `#${order._id.slice(-6).toUpperCase()}`}
+                  {order.orderCode || `#${String(order._id).slice(-6).toUpperCase()}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{order.user?.name || 'N/A'}</div>
@@ -229,7 +229,7 @@ export default function AdminOrdersPage() {
             <span>
               Bạn có chắc chắn muốn chuyển trạng thái đơn hàng{" "}
               <strong className="font-mono text-gray-800 dark:text-white bg-gray-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 font-bold">
-                {confirmModal.orderCode || `#${confirmModal.orderId.slice(-6).toUpperCase()}`}
+                {confirmModal.orderCode || `#${String(confirmModal.orderId).slice(-6).toUpperCase()}`}
               </strong>{" "}
               sang trạng thái{" "}
               <strong className="uppercase font-bold text-red-600 dark:text-red-400">
