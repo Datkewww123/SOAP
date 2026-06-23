@@ -26,49 +26,57 @@ async function publishEvent(eventType, data) {
 
 async function publishOrderCreated(order) {
   await publishEvent('ORDER_CREATED', {
-    orderId: order._id.toString(),
-    orderCode: order.orderCode,
-    userEmail: order.userEmail,
-    customerName: order.shippingAddress?.fullName,
+    orderId: order.id.toString(),
+    orderCode: order.order_code,
+    userEmail: order.user_email,
+    customerName: order.shipping_full_name,
     total: order.total,
-    paymentMethod: order.paymentMethod,
+    paymentMethod: order.payment_method,
     items: order.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
-    shippingAddress: order.shippingAddress,
-    createdAt: order.createdAt,
+    shippingAddress: {
+      fullName: order.shipping_full_name,
+      phone: order.shipping_phone,
+      province: order.shipping_province,
+      district: order.shipping_district,
+      ward: order.shipping_ward,
+      street: order.shipping_street,
+      note: order.shipping_note,
+    },
+    createdAt: order.created_at,
   });
 }
 
 async function publishOrderPaid(order) {
   await publishEvent('ORDER_PAID', {
-    orderId: order._id.toString(),
-    orderCode: order.orderCode,
-    userEmail: order.userEmail,
-    customerName: order.shippingAddress?.fullName,
+    orderId: order.id.toString(),
+    orderCode: order.order_code,
+    userEmail: order.user_email,
+    customerName: order.shipping_full_name,
     total: order.total,
-    paymentMethod: order.paymentMethod,
-    paymentTransactionId: order.paymentTransactionId,
-    paidAt: order.paidAt,
+    paymentMethod: order.payment_method,
+    paymentTransactionId: order.payment_transaction_id,
+    paidAt: order.paid_at,
   });
 }
 
 async function publishOrderDelivered(order) {
   await publishEvent('ORDER_DELIVERED', {
-    orderId: order._id.toString(),
-    orderCode: order.orderCode,
-    userEmail: order.userEmail,
-    customerName: order.shippingAddress?.fullName,
-    deliveredAt: order.deliveredAt,
+    orderId: order.id.toString(),
+    orderCode: order.order_code,
+    userEmail: order.user_email,
+    customerName: order.shipping_full_name,
+    deliveredAt: order.delivered_at,
   });
 }
 
 async function publishOrderCancelled(order) {
   await publishEvent('ORDER_CANCELLED', {
-    orderId: order._id.toString(),
-    orderCode: order.orderCode,
-    userEmail: order.userEmail,
-    customerName: order.shippingAddress?.fullName,
-    cancelReason: order.cancelReason,
-    cancelledAt: order.cancelledAt,
+    orderId: order.id.toString(),
+    orderCode: order.order_code,
+    userEmail: order.user_email,
+    customerName: order.shipping_full_name,
+    cancelReason: order.cancel_reason,
+    cancelledAt: order.cancelled_at,
   });
 }
 
