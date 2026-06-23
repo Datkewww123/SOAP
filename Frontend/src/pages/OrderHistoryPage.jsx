@@ -62,7 +62,7 @@ export default function OrderHistoryPage() {
         method: "POST",
       });
       if (response.success || response.data) {
-        toast.success(`Xác nhận đã nhận đơn hàng ${orderCode || '#' + orderId.slice(-6).toUpperCase()} thành công.`);
+        toast.success(`Xác nhận đã nhận đơn hàng ${orderCode || '#' + String(orderId).slice(-6).toUpperCase()} thành công.`);
         fetchOrders();
       } else {
         toast.error("Có lỗi xảy ra khi xác nhận đơn hàng.");
@@ -194,7 +194,7 @@ export default function OrderHistoryPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
                   <div>
                     <p className="font-bold text-base">
-                      Mã: {order.orderCode || `#${order._id.slice(-8).toUpperCase()}`}
+                      Mã: {order.orderCode || `#${String(order._id).slice(-8).toUpperCase()}`}
                     </p>
                     <p className="text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString("vi-VN", {
@@ -281,7 +281,7 @@ export default function OrderHistoryPage() {
             <span>
               Bạn xác nhận đã nhận được đầy đủ sản phẩm của đơn hàng{" "}
               <strong className="font-mono text-gray-800 dark:text-white bg-gray-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 font-bold">
-                {confirmModal.orderCode || `#${confirmModal.orderId.slice(-6).toUpperCase()}`}
+                {confirmModal.orderCode || `#${String(confirmModal.orderId).slice(-6).toUpperCase()}`}
               </strong>
               ? Trạng thái đơn hàng sẽ được chuyển thành hoàn thành.
             </span>
