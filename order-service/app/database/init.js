@@ -1,16 +1,15 @@
-// Backend/app/database/init.js
-// Database initialization
+const mysqlDatabase = require('./mysql.database');
+const { initModels } = require('../models');
 
-const mongoDatabase = require('./Mongo.database');
+async function initDatabase() {
+  await mysqlDatabase.connect();
+  initModels();
+  await mysqlDatabase.getSequelize().sync({ alter: true });
+  console.log('✅ MySQL tables synced (order-service)');
+}
 
-module.exports = {
-  mongodb: mongoDatabase,
+async function closeDatabase() {
+  await mysqlDatabase.disconnect();
+}
 
-  async init() {
-    await mongoDatabase.connect();
-  },
-
-  async close() {
-    await mongoDatabase.disconnect();
-  }
-};
+module.exports = { initDatabase, closeDatabase };
