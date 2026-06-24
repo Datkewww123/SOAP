@@ -125,9 +125,14 @@ Cấu hình nginx từ thư mục `nginx/` và khởi chạy.
 - Admin dashboard (quản lý sản phẩm, đơn hàng, users)
 - Dark mode
 
-## API
+## API Docs (Swagger)
 
-Xem chi tiết tại [API.md](API.md)
+Khi các service đang chạy, truy cập:
+
+- **Tổng hợp**: http://localhost:5173/api-docs.html
+- **Identity Service**: http://localhost:3001/api-docs
+- **Catalog Service**: http://localhost:3002/api-docs
+- **Order Service**: http://localhost:3003/api-docs
 
 ## Cấu trúc thư mục
 

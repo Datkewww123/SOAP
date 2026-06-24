@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation - THSPORT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-bottom: 1px solid #334155;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .header h1 span { color: #e50914; }
+    .header .sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #1e293b;
+      padding: 4px;
+      border-radius: 10px;
+      margin: 20px 40px 0;
+    }
+    .tab {
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: #64748b;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+    }
+    .tab:hover { color: #f1f5f9; background: #334155; }
+    .tab.active {
+      color: #fff;
+      background: #e50914;
+      box-shadow: 0 4px 12px rgba(229,9,20,0.3);
+    }
+    .tab i { margin-right: 6px; }
+    .panel {
+      margin: 0 40px 40px;
+      display: none;
+    }
+    .panel.active { display: block; }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 200px);
+      border: none;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .footer-bar {
+      text-align: center;
+      padding: 12px;
+      font-size: 12px;
+      color: #475569;
+      border-top: 1px solid #1e293b;
+    }
+    @media (max-width: 768px) {
+      .header { flex-direction: column; text-align: center; gap: 8px; }
+      .tabs { margin: 16px; flex-wrap: wrap; }
+      .panel { margin: 0 16px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>TH<span>SPORT</span> API Docs</h1>
+      <div class="sub">Tài liệu API cho tất cả microservices</div>
+    </div>
+    <div style="font-size:13px;color:#94a3b8">
+      <i class="fas fa-plug"></i> Cần chạy các service trước
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-service="identity">
+      <i class="fas fa-user-shield"></i> Identity
+    </button>
+    <button class="tab" data-service="catalog">
+      <i class="fas fa-box"></i> Catalog
+    </button>
+    <button class="tab" data-service="order">
+      <i class="fas fa-truck"></i> Order
+    </button>
+  </div>
+
+  <div class="panel active" id="panel-identity">
+    <iframe src="http://localhost:3001/api-docs"></iframe>
+  </div>
+  <div class="panel" id="panel-catalog">
+    <iframe src="http://localhost:3002/api-docs"></iframe>
+  </div>
+  <div class="panel" id="panel-order">
+    <iframe src="http://localhost:3003/api-docs"></iframe>
+  </div>
+
+  <div class="footer-bar">
+    <i class="fas fa-info-circle"></i> 
+    Identity:3001 &bull; Catalog:3002 &bull; Order:3003 &bull; API Gateway:8080
+  </div>
+
+  <script>
+    document.getElementById('tabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab');
+      if (!btn) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.service).classList.add('active');
+    });
+  </script>
+</body>
+</html>
