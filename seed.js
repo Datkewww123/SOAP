@@ -277,6 +277,15 @@ const BRANDS_DATA = [
   { name: 'Joma',    logoUrl: 'https://placehold.co/400x200/CC0000/FFFFFF?text=Joma', description: 'Thương hiệu Tây Ban Nha phổ biến trong bóng đá phong trào tại Việt Nam.' },
   { name: 'Under Armour', logoUrl: 'https://cdn.simpleicons.org/underarmour', description: 'Thương hiệu Mỹ chuyên đồ thể thao hiệu suất cao.' },
   { name: 'New Balance', logoUrl: 'https://cdn.simpleicons.org/newbalance', description: 'Thương hiệu Mỹ nổi tiếng với sự thoải mái và độ bền.' },
+  { name: 'Reebok',  logoUrl: 'https://placehold.co/400x200/1C1C1C/FFFFFF?text=Reebok', description: 'Thương hiệu thể thao toàn cầu với phong cách cổ điển và hiệu suất cao.' },
+  { name: 'Converse', logoUrl: 'https://placehold.co/400x200/000000/FFFFFF?text=Converse', description: 'Thương hiệu giày biểu tượng của Mỹ, nổi bật với phong cách thời trang đường phố.' },
+  { name: 'Vans',    logoUrl: 'https://placehold.co/400x200/CC0000/FFFFFF?text=Vans', description: 'Thương hiệu dành cho những người yêu thích trượt ván và phong cách tự do.' },
+  { name: 'Fila',    logoUrl: 'https://placehold.co/400x200/003366/FFFFFF?text=Fila', description: 'Thương hiệu thời trang thể thao Ý mang đậm nét thanh lịch.' },
+  { name: 'Salomon', logoUrl: 'https://placehold.co/400x200/222222/FFFFFF?text=Salomon', description: 'Thương hiệu hàng đầu về giày chạy trail và các môn thể thao ngoài trời.' },
+  { name: 'Hoka',    logoUrl: 'https://placehold.co/400x200/0055A4/FFFFFF?text=Hoka', description: 'Thương hiệu giày chạy bộ siêu đệm, bảo vệ bàn chân vượt trội.' },
+  { name: 'Saucony', logoUrl: 'https://placehold.co/400x200/000000/FFFFFF?text=Saucony', description: 'Thương hiệu chuyên biệt dành cho dân chạy bộ.' },
+  { name: 'Champion', logoUrl: 'https://placehold.co/400x200/003366/FFFFFF?text=Champion', description: 'Biểu tượng phong cách thể thao đường phố của Mỹ.' },
+  { name: 'Kappa',   logoUrl: 'https://placehold.co/400x200/000000/FFFFFF?text=Kappa', description: 'Thương hiệu thể thao Ý nổi tiếng với logo Omini đặc trưng.' }
 ];
 
 const CATEGORIES_DATA = [
@@ -377,7 +386,7 @@ const PRODUCTS_TEMPLATE = [
 ];
 
 // Expand PRODUCTS_TEMPLATE to exactly 200 products dynamically to reach required diversity
-const brandsList = ['Nike', 'Adidas', 'Puma', 'Mizuno', 'Asics', 'NMS', 'Kamito', 'Zocker', 'Joma', 'Under Armour', 'New Balance'];
+const brandsList = ['Nike', 'Adidas', 'Puma', 'Mizuno', 'Asics', 'NMS', 'Kamito', 'Zocker', 'Joma', 'Under Armour', 'New Balance', 'Reebok', 'Converse', 'Vans', 'Fila', 'Salomon', 'Hoka', 'Saucony', 'Champion', 'Kappa'];
 const categorySpecs = {
   'giay-bong-da-san-co-tu-nhien': {
     nameTemplates: ['Vapor 15 Elite FG', 'Predator Elite FG', 'Future Ultimate FG', 'Morelia Neo IV FG', 'Tekela V4 FG'],
@@ -566,7 +575,7 @@ let categoryKeys = Object.keys(categorySpecs);
 let brandIndex = 0;
 let categoryIndex = 0;
 
-while (generatedCount < 200) {
+while (generatedCount < 1000) {
   const catKey = categoryKeys[categoryIndex % categoryKeys.length];
   const spec = categorySpecs[catKey];
   const brand = brandsList[brandIndex % brandsList.length];

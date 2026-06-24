@@ -6,6 +6,7 @@ const eventBus = require('../utils/eventBus');
 const CATALOG_SERVICE_URL  = process.env.CATALOG_SERVICE_URL  || 'http://catalog-service:3002';
 const PAYMENT_SERVICE_URL  = process.env.PAYMENT_SERVICE_URL  || 'http://payment-service:3004';
 const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL || 'http://identity-service:3001';
+const INTERNAL_KEY = process.env.INTERNAL_API_KEY || 'internal123';
 
 exports.createOrder = async (req, res) => {
   try {
@@ -62,7 +63,7 @@ exports.createOrder = async (req, res) => {
       const response = await axios.post(
         `${CATALOG_SERVICE_URL}/api/products/${item.productId}/reduce-stock`,
         { quantity: item.quantity },
-        { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+        { headers: { 'x-internal-key': INTERNAL_KEY } }
       );
       if (!response.data.success) return res.status(400).json({ error: response.data.error });
     }
@@ -106,7 +107,7 @@ exports.createOrder = async (req, res) => {
 
     // Lấy email user
     try {
-      const userRes = await axios.get(`${IDENTITY_SERVICE_URL}/api/users/${req.user.id}`, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } });
+      const userRes = await axios.get(`${IDENTITY_SERVICE_URL}/api/users/${req.user.id}`, { headers: { 'x-internal-key': INTERNAL_KEY } });
       if (userRes.data?.email) await order.update({ user_email: userRes.data.email });
     } catch (e) { console.error('Failed to fetch user email:', e.message); }
 
@@ -116,7 +117,7 @@ exports.createOrder = async (req, res) => {
       try {
         const momoRes = await axios.post(`${PAYMENT_SERVICE_URL}/api/payment/create`,
           { orderId: order.id.toString(), amount: total, orderInfo: `Thanh toan don hang ${order.order_code}` },
-          { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }
+          { headers: { 'x-internal-key': INTERNAL_KEY } }
         );
         if (momoRes.data.success) {
           paymentUrl = momoRes.data.data.payUrl;
@@ -210,7 +211,7 @@ exports.updateOrder = async (req, res) => {
         for (const item of order.items) {
           try {
             await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/increment-sold`,
-              { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } });
+              { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } });
           } catch (e) { console.error('increment-sold failed:', e.message); }
         }
         setImmediate(() => eventBus.publishOrderDelivered(order));
@@ -220,7 +221,7 @@ exports.updateOrder = async (req, res) => {
         for (const item of order.items) {
           try {
             await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/restore-stock`,
-              { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } });
+              { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } });
           } catch (e) { console.error('restore-stock failed:', e.message); }
         }
         if (order.coupon_code) {
@@ -262,7 +263,7 @@ exports.cancelOrder = async (req, res) => {
     for (const item of order.items) {
       try {
         await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/restore-stock`,
-          { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } });
+          { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } });
       } catch (e) { console.error('restore-stock failed:', e.message); }
     }
     if (order.coupon_code) {
@@ -396,7 +397,7 @@ exports.updateOrderStatus = async (req, res) => {
     if (status === 'delivered') {
       updates.delivered_at = new Date(); updates.payment_status = 'paid'; updates.paid_at = new Date();
       for (const item of order.items) {
-        try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/increment-sold`, { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }); }
+        try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/increment-sold`, { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } }); }
         catch (e) { console.error('increment-sold failed:', e.message); }
       }
       setImmediate(() => eventBus.publishOrderDelivered(order));
@@ -404,7 +405,7 @@ exports.updateOrderStatus = async (req, res) => {
     if (status === 'cancelled' && order.status !== 'cancelled') {
       updates.cancelled_at = new Date();
       for (const item of order.items) {
-        try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/restore-stock`, { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }); }
+        try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/restore-stock`, { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } }); }
         catch (e) { console.error('restore-stock failed:', e.message); }
       }
       if (order.coupon_code) {
@@ -540,7 +541,7 @@ exports.receiveOrder = async (req, res) => {
 
     await order.update({ status: 'delivered', delivered_at: new Date(), payment_status: 'paid' });
     for (const item of order.items) {
-      try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/increment-sold`, { quantity: item.quantity }, { headers: { 'x-internal-key': process.env.INTERNAL_API_KEY } }); }
+      try { await axios.post(`${CATALOG_SERVICE_URL}/api/products/${item.product_id}/increment-sold`, { quantity: item.quantity }, { headers: { 'x-internal-key': INTERNAL_KEY } }); }
       catch (e) { console.error('increment-sold failed:', e.message); }
     }
     setImmediate(() => eventBus.publishOrderDelivered(order));
