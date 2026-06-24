@@ -207,32 +207,36 @@ function ProfileTab({ user }) {
 
   const handleSaveAddress = async (e) => {
     e.preventDefault();
-    if (!addressForm.fullName || !addressForm.phone || !addressForm.province || !addressForm.district || !addressForm.street) {
+    if (!addressForm.fullName || !addressForm.province || !addressForm.district || !addressForm.street) {
       toast.error("Vui lòng điền đầy đủ thông tin địa chỉ.");
       return;
     }
+    const payload = {
+      ...addressForm,
+      phone: addressForm.phone || user.phone || "",
+    };
     try {
       if (editingAddress) {
         const addrId = editingAddress.id || editingAddress._id;
         const res = await fetchApi(`/users/addresses/${addrId}`, {
           method: 'PUT',
-          body: JSON.stringify({ ...addressForm, isDefault: editingAddress.is_default || editingAddress.isDefault }),
+          body: JSON.stringify({ ...payload, isDefault: editingAddress.is_default || editingAddress.isDefault }),
         });
         if (res.success) {
           setSavedAddresses(res.data || []);
-          toast.success('Cập nhật địa chỉ thành công!');
+          toast.success('Đã lưu thành công');
         }
       } else {
         const res = await fetchApi('/users/addresses', {
           method: 'POST',
           body: JSON.stringify({
-            ...addressForm,
+            ...payload,
             isDefault: savedAddresses.length === 0,
           }),
         });
         if (res.success) {
           setSavedAddresses(res.data || []);
-          toast.success('Thêm địa chỉ thành công!');
+          toast.success('Đã lưu thành công');
         }
       }
       setShowAddressForm(false);
@@ -380,15 +384,6 @@ function ProfileTab({ user }) {
                 onChange={handleAddressFormChange}
                 required
                 className="col-span-2 p-3 border rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
-              />
-              <input
-                type="tel"
-                placeholder="Số điện thoại *"
-                name="phone"
-                value={addressForm.phone}
-                onChange={handleAddressFormChange}
-                required
-                className="col-span-1 p-3 border rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600"
               />
               <input
                 type="text"
