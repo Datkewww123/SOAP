@@ -537,10 +537,10 @@ export default function AdminDashboardPage() {
               >
                 <div className="text-sm">
                   <p className="font-bold text-gray-800 dark:text-white">
-                    {order.orderCode || (order.id ? `#${String(order.id).slice(-6).toUpperCase()}` : 'N/A')}
+                    {order.order_code || (order.id ? `#${String(order.id).slice(-6).toUpperCase()}` : 'N/A')}
                   </p>
                   <p className="text-gray-400 text-xs mt-1">
-                    Khách hàng: <span className="text-gray-600 dark:text-slate-300 font-medium">{order.user?.name || 'N/A'}</span>
+                    Khách hàng: <span className="text-gray-600 dark:text-slate-300 font-medium">{order.shipping_full_name || order.user_email || 'N/A'}</span>
                   </p>
                 </div>
                 <div className="text-right">
