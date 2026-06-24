@@ -13,9 +13,11 @@
     { "source": "/api/news/:match*", "destination": "https://soap-catalog-service.onrender.com/api/news/:match*" },
     
     { "source": "/api/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/orders/:match*" },
-    { "source": "/api/promotions/:match*", "destination": "https://soap-order-service.onrender.com/api/promotions/:match*" },
     { "source": "/api/admin/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/admin/orders/:match*" },
+    { "source": "/api/promotions/:match*", "destination": "https://soap-order-service.onrender.com/api/promotions/:match*" },
     
-    { "source": "/api/payment/:match*", "destination": "https://soap-payment-service.onrender.com/api/payment/:match*" }
+    { "source": "/api/payment/:match*", "destination": "https://soap-payment-service.onrender.com/api/payment/:match*" },
+
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
