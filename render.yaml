@@ -3,6 +3,7 @@ services:
     name: soap-identity-service
     env: docker
     dockerfilePath: ./identity-service/Dockerfile
+    dockerContext: ./identity-service
     plan: free
     envVars:
       - key: PORT
@@ -28,6 +29,7 @@ services:
     name: soap-catalog-service
     env: docker
     dockerfilePath: ./catalog-service/Dockerfile
+    dockerContext: ./catalog-service
     plan: free
     envVars:
       - key: PORT
@@ -47,6 +49,7 @@ services:
     name: soap-order-service
     env: docker
     dockerfilePath: ./order-service/Dockerfile
+    dockerContext: ./order-service
     plan: free
     envVars:
       - key: PORT
@@ -75,6 +78,7 @@ services:
     name: soap-payment-service
     env: docker
     dockerfilePath: ./payment-service/Dockerfile
+    dockerContext: ./payment-service
     plan: free
     envVars:
       - key: PORT
@@ -84,6 +88,7 @@ services:
     name: soap-notification-service
     env: docker
     dockerfilePath: ./notification-service/Dockerfile
+    dockerContext: ./notification-service
     plan: free
     envVars:
       - key: PORT
