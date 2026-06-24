@@ -44,6 +44,8 @@ services:
         sync: false
       - key: MYSQL_DATABASE
         value: soap_catalog_db
+      - key: JWT_SECRET
+        value: mot_chuoi_bi_mat_bat_ky
 
   - type: web
     name: soap-order-service
@@ -64,6 +66,8 @@ services:
         sync: false
       - key: MYSQL_DATABASE
         value: soap_order_db
+      - key: JWT_SECRET
+        value: mot_chuoi_bi_mat_bat_ky
       - key: REDIS_URL
         fromService:
           type: redis
