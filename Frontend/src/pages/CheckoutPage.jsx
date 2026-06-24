@@ -10,14 +10,14 @@ import { toast } from "react-toastify";
 function OrderSummaryItem({ item }) {
   return (
     <div className="flex justify-between items-center py-3 border-b">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <img
           src={item.imageUrl}
           alt={item.name}
-          className="w-14 h-14 object-cover rounded-md border"
+          className="w-14 h-14 object-cover rounded-md border shrink-0"
         />
-        <div>
-          <p className="font-bold text-sm max-w-[200px] truncate">
+        <div className="min-w-0">
+          <p className="font-bold text-sm truncate antialiased">
             {item.name}
           </p>
           <p className="text-xs text-gray-500">
@@ -26,8 +26,8 @@ function OrderSummaryItem({ item }) {
           </p>
         </div>
       </div>
-      <p className="font-bold text-sm">
-        {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
+      <p className="font-semibold text-sm tabular-nums antialiased shrink-0 ml-2">
+        {(item.price * item.quantity).toLocaleString("vi-VN")}<span className="font-sans"> ₫</span>
       </p>
     </div>
   );
