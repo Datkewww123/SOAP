@@ -103,6 +103,41 @@ function initModels() {
   Product.hasMany(Wishlist,   { foreignKey: 'product_id', as: 'wishlists', onDelete: 'CASCADE' });
   Wishlist.belongsTo(Product, { foreignKey: 'product_id' });
 
+  // --- HOOKS ---
+  const updateProductRating = async (productId) => {
+    try {
+      const stats = await Review.findAll({
+        where: { product_id: productId, status: 'approved' },
+        attributes: [
+          [sequelize.fn('AVG', sequelize.col('rating')), 'avgRating'],
+          [sequelize.fn('COUNT', sequelize.col('id')), 'totalReviews']
+        ],
+        raw: true
+      });
+
+      const avgRating = stats[0] && stats[0].avgRating ? parseFloat(stats[0].avgRating) : 0;
+      const totalReviews = stats[0] && stats[0].totalReviews ? parseInt(stats[0].totalReviews, 10) : 0;
+
+      await Product.update(
+        {
+          rating: Math.round(avgRating * 10) / 10,
+          reviews: totalReviews
+        },
+        { where: { id: productId } }
+      );
+    } catch (err) {
+      console.error('Error updating product rating:', err);
+    }
+  };
+
+  Review.afterSave(async (review, options) => {
+    await updateProductRating(review.product_id);
+  });
+
+  Review.afterDestroy(async (review, options) => {
+    await updateProductRating(review.product_id);
+  });
+
   return { Brand, Category, Product, Review, Wishlist, News };
 }
 

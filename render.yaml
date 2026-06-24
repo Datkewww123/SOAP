@@ -1,31 +1,99 @@
 services:
   - type: web
-    name: thsport-backend
-    runtime: node
-    rootDir: Backend
-    buildCommand: npm install
-    startCommand: node server.js
+    name: soap-identity-service
+    env: docker
+    dockerfilePath: ./identity-service/Dockerfile
+    plan: free
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
-        value: 10000
-      - key: MONGODB_URI
-        fromDatabase:
-          name: thsport-db
-      - key: JWT_SECRET
+        value: 3001
+      - key: MYSQL_HOST
+        value: my-shoe-shop-my-soap123-project.h.aivencloud.com
+      - key: MYSQL_PORT
+        value: 28950
+      - key: MYSQL_USER
+        value: avnadmin
+      - key: MYSQL_PASSWORD
         sync: false
-      - key: CORS_ORIGIN
-        value: https://thsport-frontend.onrender.com,https://thsports-frontend.onrender.com,http://localhost:5173,http://localhost:5174
+      - key: MYSQL_DATABASE
+        value: soap_identity_db
+      - key: JWT_SECRET
+        value: mot_chuoi_bi_mat_bat_ky
+      - key: CATALOG_SERVICE_URL
+        value: https://soap-catalog-service.onrender.com
+      - key: ORDER_SERVICE_URL
+        value: https://soap-order-service.onrender.com
 
   - type: web
-    name: thsport-frontend
-    runtime: node
-    rootDir: Frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
+    name: soap-catalog-service
+    env: docker
+    dockerfilePath: ./catalog-service/Dockerfile
+    plan: free
     envVars:
-      - key: VITE_API_URL
-        value: https://thsport-backend.onrender.com/api
-      - key: NODE_ENV
-        value: production
+      - key: PORT
+        value: 3002
+      - key: MYSQL_HOST
+        value: my-shoe-shop-my-soap123-project.h.aivencloud.com
+      - key: MYSQL_PORT
+        value: 28950
+      - key: MYSQL_USER
+        value: avnadmin
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DATABASE
+        value: soap_catalog_db
+
+  - type: web
+    name: soap-order-service
+    env: docker
+    dockerfilePath: ./order-service/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3003
+      - key: MYSQL_HOST
+        value: my-shoe-shop-my-soap123-project.h.aivencloud.com
+      - key: MYSQL_PORT
+        value: 28950
+      - key: MYSQL_USER
+        value: avnadmin
+      - key: MYSQL_PASSWORD
+        sync: false
+      - key: MYSQL_DATABASE
+        value: soap_order_db
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: soap-redis
+          property: connectionString
+      - key: CATALOG_SERVICE_URL
+        value: https://soap-catalog-service.onrender.com
+      - key: IDENTITY_SERVICE_URL
+        value: https://soap-identity-service.onrender.com
+
+  - type: web
+    name: soap-payment-service
+    env: docker
+    dockerfilePath: ./payment-service/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3004
+
+  - type: web
+    name: soap-notification-service
+    env: docker
+    dockerfilePath: ./notification-service/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 3005
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: soap-redis
+          property: connectionString
+
+  - type: redis
+    name: soap-redis
+    plan: free

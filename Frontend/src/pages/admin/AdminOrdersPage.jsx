@@ -166,24 +166,29 @@ export default function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order._id}>
+            {orders.map((order) => {
+              // Sequelize returns snake_case fields; support both formats
+              const orderId = order.id || order._id;
+              const orderCode = order.order_code || order.orderCode;
+              const createdAt = order.created_at || order.createdAt;
+              const customerName = order.shipping_full_name || order.user?.name || 'N/A';
+              const customerEmail = order.user_email || order.user?.email || 'N/A';
+              return (
+              <tr key={orderId}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.orderCode || `#${String(order._id).slice(-6).toUpperCase()}`}
+                  {orderCode || `#${String(orderId).toString().slice(-6).toUpperCase()}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{order.user?.name || 'N/A'}</div>
-                  <div className="text-xs text-gray-500">
-                    {order.user?.email || 'N/A'}
-                  </div>
+                  <div className="text-sm text-gray-900">{customerName}</div>
+                  <div className="text-xs text-gray-500">{customerEmail}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
                   {formatCurrency(order.total || 0)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                  {createdAt ? new Date(createdAt).toLocaleDateString("vi-VN") : 'N/A'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       STATUS_COLORS[order.status]
@@ -191,13 +196,18 @@ export default function AdminOrdersPage() {
                   >
                     {order.status.toUpperCase()}
                   </span>
+                  {order.status === 'cancelled' && (order.cancel_reason || order.cancelReason) && (
+                    <div className="mt-1 text-xs text-red-500 max-w-[160px] truncate" title={order.cancel_reason || order.cancelReason}>
+                      <span className="font-semibold">Lý do:</span> {order.cancel_reason || order.cancelReason}
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <select
                     value={order.status}
                     disabled={order.status === "delivered" || order.status === "cancelled"}
                     onChange={(e) =>
-                      handleUpdateStatusClick(order._id, order.orderCode, e.target.value)
+                      handleUpdateStatusClick(orderId, orderCode, e.target.value)
                     }
                     className="border border-gray-300 rounded-md p-1 text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -221,7 +231,8 @@ export default function AdminOrdersPage() {
                   </select>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -242,11 +253,11 @@ export default function AdminOrdersPage() {
             <span>
               Bạn có chắc chắn muốn chuyển trạng thái đơn hàng{" "}
               <strong className="font-mono text-gray-800 dark:text-white bg-gray-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-200 dark:border-slate-700 font-bold">
-                {confirmModal.orderCode || `#${String(confirmModal.orderId).slice(-6).toUpperCase()}`}
+                {confirmModal.orderCode || `#${String(confirmModal.orderId).toString().slice(-6).toUpperCase()}`}
               </strong>{" "}
               sang trạng thái{" "}
               <strong className="uppercase font-bold text-red-600 dark:text-red-400">
-                {confirmModal.newStatus.toUpperCase()}
+                {confirmModal.newStatus?.toUpperCase()}
               </strong>
               ?
             </span>

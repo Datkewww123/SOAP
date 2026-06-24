@@ -17,16 +17,10 @@ const ProductFormModal = ({ product, categories, brands, onClose, onSave }) => {
     category: product?.category?.id || product?.category_id || (categories[0]?.id || ""),
     brand: product?.brand?.id || product?.brand_id || (brands[0]?.id || ""),
 
-    // THÊM: Chuyển mảng URL thành chuỗi cách nhau bằng dấu phẩy
-    images: product?.images?.join(", ") || "",
-
-    // THÊM: Chuyển mảng sizes thành chuỗi cách nhau bằng dấu phẩy
-    availableSizes: product?.availableSizes?.join(", ") || "",
-
-    // THÊM: isXakho
-    isXakho: product?.isXakho || false,
-
-    // THÊM: stock
+    // Support both snake_case (Sequelize) and camelCase
+    images: (product?.images || []).join(", "),
+    availableSizes: (product?.available_sizes || product?.availableSizes || []).join(", "),
+    isXakho: product?.is_xakho ?? product?.isXakho ?? false,
     stock: product?.stock || 0,
   });
 

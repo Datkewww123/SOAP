@@ -13,7 +13,7 @@ class MySQLDatabase {
     try {
       if (this.isConnected) return this.sequelize;
 
-      this.sequelize = new Sequelize(
+            this.sequelize = new Sequelize(
         process.env.MYSQL_DATABASE,
         process.env.MYSQL_USER,
         process.env.MYSQL_PASSWORD,
@@ -22,6 +22,15 @@ class MySQLDatabase {
           port: Number(process.env.MYSQL_PORT) || 3306,
           dialect: 'mysql',
           logging: false,
+          
+          // Bật SSL cho Aiven
+          dialectOptions: {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false
+            }
+          },
+
           pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
           define: {
             charset: 'utf8mb4',

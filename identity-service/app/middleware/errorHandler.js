@@ -15,7 +15,7 @@ const { httpStatus } = require('../constants/init');
  * Quy trình:
  * 1. Kiểm tra statusCode, nếu không có → mặc định 500 INTERNAL_SERVER_ERROR
  * 2. Tạo responseError object
- * 3. Xử lý các loại lỗi đặc biệt (Mongoose, JWT, etc.)
+ * 3. Xử lý các loại lỗi đặc biệt (Sequelize, JWT, etc.)
  * 4. Log error
  * 5. Xóa stack trace nếu môi trường PRODUCTION (bảo mật)
  * 6. Trả về JSON response
@@ -35,27 +35,32 @@ module.exports = (err, req, res, next) => {
   // XỬ LÝ CÁC LOẠI LỖI ĐẶC BIỆT
   // ============================================
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
+  // Sequelize validation error
+  if (err.name === 'SequelizeValidationError') {
     responseError.statusCode = httpStatus.BAD_REQUEST;
     responseError.message = 'Dữ liệu không hợp lệ';
-    responseError.errors = Object.values(err.errors).map(e => ({
+    responseError.errors = err.errors.map(e => ({
       field: e.path,
       message: e.message
     }));
   }
 
-  // Mongoose duplicate key error
-  if (err.code === 11000) {
+  // Sequelize unique constraint error
+  if (err.name === 'SequelizeUniqueConstraintError') {
     responseError.statusCode = httpStatus.CONFLICT;
-    const field = Object.keys(err.keyPattern)[0];
-    responseError.message = `${field} đã tồn tại`;
+    responseError.message = err.errors && err.errors.length > 0
+      ? `${err.errors[0].path} đã tồn tại`
+      : 'Dữ liệu đã tồn tại';
+    responseError.errors = err.errors.map(e => ({
+      field: e.path,
+      message: e.message
+    }));
   }
 
-  // Mongoose CastError (invalid ObjectId)
-  if (err.name === 'CastError') {
+  // Sequelize foreign key constraint error
+  if (err.name === 'SequelizeForeignKeyConstraintError') {
     responseError.statusCode = httpStatus.BAD_REQUEST;
-    responseError.message = `Invalid ${err.path}: ${err.value}`;
+    responseError.message = 'Lỗi liên kết dữ liệu (Foreign Key Constraint)';
   }
 
   // JWT errors

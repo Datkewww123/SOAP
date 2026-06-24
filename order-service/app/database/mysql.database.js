@@ -20,8 +20,21 @@ class MySQLDatabase {
           port: Number(process.env.MYSQL_PORT) || 3306,
           dialect: 'mysql',
           logging: false,
+          
+          // Bật SSL cho Aiven
+          dialectOptions: {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false
+            }
+          },
+
           pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
-          define: { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci', underscored: true },
+          define: {
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci',
+            underscored: true,
+          },
           timezone: '+07:00',
         }
       );

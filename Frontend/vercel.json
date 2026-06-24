@@ -1,0 +1,21 @@
+{
+  "rewrites": [
+    { "source": "/api/auth/:match*", "destination": "https://soap-identity-service.onrender.com/api/auth/:match*" },
+    { "source": "/api/users/:match*", "destination": "https://soap-identity-service.onrender.com/api/users/:match*" },
+    { "source": "/api/admin/users/:match*", "destination": "https://soap-identity-service.onrender.com/api/admin/users/:match*" },
+    { "source": "/api/admin/stats/:match*", "destination": "https://soap-identity-service.onrender.com/api/admin/stats/:match*" },
+    
+    { "source": "/api/products/:match*", "destination": "https://soap-catalog-service.onrender.com/api/products/:match*" },
+    { "source": "/api/brands/:match*", "destination": "https://soap-catalog-service.onrender.com/api/brands/:match*" },
+    { "source": "/api/categories/:match*", "destination": "https://soap-catalog-service.onrender.com/api/categories/:match*" },
+    { "source": "/api/reviews/:match*", "destination": "https://soap-catalog-service.onrender.com/api/reviews/:match*" },
+    { "source": "/api/wishlist/:match*", "destination": "https://soap-catalog-service.onrender.com/api/wishlist/:match*" },
+    { "source": "/api/news/:match*", "destination": "https://soap-catalog-service.onrender.com/api/news/:match*" },
+    
+    { "source": "/api/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/orders/:match*" },
+    { "source": "/api/promotions/:match*", "destination": "https://soap-order-service.onrender.com/api/promotions/:match*" },
+    { "source": "/api/admin/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/admin/orders/:match*" },
+    
+    { "source": "/api/payment/:match*", "destination": "https://soap-payment-service.onrender.com/api/payment/:match*" }
+  ]
+}
