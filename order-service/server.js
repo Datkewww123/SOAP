@@ -3,6 +3,8 @@ require('dotenv').config();
 
 const express      = require('express');
 const cookieParser = require('cookie-parser');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const { env }        = require('./app/config/environment');
 const database       = require('./app/database/init');
@@ -15,6 +17,17 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(cookieParser());
 middlewareInit(app);
+
+// Swagger
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: { title: 'Order Service API', version: '1.0.0', description: 'Orders management' },
+    servers: [{ url: 'http://localhost:8080/api', description: 'API Gateway' }],
+  },
+  apis: ['./app/routes/*.js'],
+});
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -33,10 +46,11 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 async function startServer() {
-    await database.initDatabase(); // ← đổi từ database.init()
+    await database.initDatabase();
     const PORT = process.env.PORT || 3003;
     app.listen(PORT, () => {
         console.log(`Order Service running on port ${PORT}`);
+        console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
     });
 }
 
