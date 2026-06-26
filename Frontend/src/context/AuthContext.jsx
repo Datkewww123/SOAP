@@ -90,6 +90,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("cart");
+      localStorage.removeItem("cart_selected");
       setCurrentUser(null);
       toast.info("Đã đăng xuất.");
     }

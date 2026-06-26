@@ -87,6 +87,13 @@ export function CartProvider({ children }) {
     setSelectedIds(validIds);
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) {
+      setCartItems([]);
+      setSelectedIds([]);
+    }
+  }, [currentUser]);
+
   const addToCart = useCallback(async (product, quantityToAdd = 1, selectedSize = null) => {
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.");
