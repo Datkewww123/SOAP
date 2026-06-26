@@ -4,7 +4,8 @@ import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 
 export default function CartItem({ item }) {
-  const { updateQuantity, removeFromCart } = useCart();
+  const { updateQuantity, removeFromCart, selectedIds, toggleItemSelection } = useCart();
+  const isSelected = selectedIds.includes(item.id);
 
   const productUrl = `/san-pham/${item.productSlug || item.productId}`;
 
@@ -25,9 +26,19 @@ export default function CartItem({ item }) {
 
   return (
     // Layout cho 1 hàng sản phẩm, dùng grid-cols-12 đồng bộ hoàn hảo với header
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center p-5 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
-      {/* 1. Thông tin sản phẩm (chiếm 5/12 cột) */}
-      <div className="lg:col-span-5 flex items-center gap-4">
+    <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 items-center p-5 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${isSelected ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
+      {/* 0. Checkbox chọn sản phẩm (chiếm 1/12 cột) */}
+      <div className="lg:col-span-1 flex items-center justify-center">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => toggleItemSelection(item.id)}
+          className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+        />
+      </div>
+
+      {/* 1. Thông tin sản phẩm (chiếm 4/12 cột) */}
+      <div className="lg:col-span-4 flex items-center gap-4">
         <Link to={productUrl} className="flex-shrink-0">
           <img
             src={item.imageUrl || "https://placehold.co/150x150?text=No+Image"}

@@ -173,7 +173,7 @@ function EmptyCart() {
 }
 
 // ─── Cart Summary (right column) ─────────────────────────────────────────────
-function CartSummary({ totalPrice, couponInfo }) {
+function CartSummary({ totalPrice, selectedTotalPrice, selectedCount, hasSelection, couponInfo }) {
   const navigate = useNavigate();
   const SHIPPING_THRESHOLD = 500000;
   const SHIPPING_FEE = 30000;
@@ -191,11 +191,17 @@ function CartSummary({ totalPrice, couponInfo }) {
         </h2>
 
         <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+          {/* Selected count */}
+          <div className="flex justify-between">
+            <span>Số sản phẩm đã chọn</span>
+            <span className="font-medium text-gray-800">{selectedCount}</span>
+          </div>
+
           {/* Subtotal */}
           <div className="flex justify-between">
             <span>Tạm tính</span>
             <span className="font-medium text-gray-800">
-              {totalPrice.toLocaleString("vi-VN")} đ
+              {selectedTotalPrice.toLocaleString("vi-VN")} đ
             </span>
           </div>
 
@@ -253,10 +259,15 @@ function CartSummary({ totalPrice, couponInfo }) {
         <button
           id="checkout-btn"
           onClick={() => navigate("/thanh-toan")}
-          className="mt-5 w-full py-3.5 rounded-xl bg-red-600 text-white font-bold text-base hover:bg-red-700 active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 shadow-md shadow-red-200"
+          disabled={!hasSelection}
+          className={`mt-5 w-full py-3.5 rounded-xl font-bold text-base flex items-center justify-center gap-2 shadow-md transition-all duration-150 ${
+            hasSelection
+              ? "bg-red-600 text-white hover:bg-red-700 active:scale-95 shadow-red-200 cursor-pointer"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
           <i className="fas fa-lock text-sm" />
-          Tiến hành thanh toán
+          {hasSelection ? `Thanh toán (${selectedCount})` : "Chọn sản phẩm để thanh toán"}
         </button>
 
         <Link
@@ -297,17 +308,22 @@ function CartSummary({ totalPrice, couponInfo }) {
 
 // ─── Main CartPage ────────────────────────────────────────────────────────────
 export default function CartPage() {
-  const { cartItems, cartCount, totalPrice, couponInfo, setCouponInfo } = useCart();
+  const { cartItems, cartCount, totalPrice, selectedTotalPrice, selectedCount, selectedIds, allSelected, selectAllItems, deselectAllItems, couponInfo, setCouponInfo } = useCart();
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleApplyCoupon = async () => {
     if (!coupon.trim()) return;
+    if (selectedIds.length === 0) {
+      toast.warning("Vui lòng chọn sản phẩm trước khi áp dụng mã giảm giá.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetchApi("/promotions/validate", {
         method: "POST",
-        body: JSON.stringify({ code: coupon.toUpperCase(), subtotal: totalPrice }),
+        body: JSON.stringify({ code: coupon.toUpperCase(), subtotal: selectedTotalPrice }),
       });
       if (res.success) {
         setCouponInfo(res.data.promotion);
@@ -352,7 +368,15 @@ export default function CartPage() {
           <div className="w-full lg:w-2/3 space-y-4">
             {/* Desktop header row */}
             <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              <div className="col-span-5">Sản phẩm</div>
+              <div className="col-span-1 flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => allSelected ? deselectAllItems() : selectAllItems()}
+                  className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                />
+              </div>
+              <div className="col-span-4">Sản phẩm</div>
               <div className="col-span-2 text-center">Đơn giá</div>
               <div className="col-span-2 text-center">Số lượng</div>
               <div className="col-span-2 text-right">Thành tiền</div>
@@ -424,6 +448,9 @@ export default function CartPage() {
           <div className="w-full lg:w-1/3">
             <CartSummary
               totalPrice={totalPrice}
+              selectedTotalPrice={selectedTotalPrice}
+              selectedCount={selectedCount}
+              hasSelection={selectedIds.length > 0}
               couponInfo={couponInfo}
             />
           </div>

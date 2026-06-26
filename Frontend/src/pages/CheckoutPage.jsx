@@ -88,7 +88,11 @@ function SavedAddressCard({ address, isSelected, onSelect, onSetDefault, onDelet
 
 // ─── Component chính ──────────────────────────────────────────────────────────
 export default function CheckoutPage() {
-  const { cartItems, totalPrice, cartCount, clearCart, couponInfo } = useCart();
+  const { cartItems, totalPrice, cartCount, selectedItems, selectedTotalPrice, selectedCount, removeItems, couponInfo } = useCart();
+
+  const checkoutItems = selectedItems.length > 0 ? selectedItems : cartItems;
+  const checkoutTotalPrice = selectedItems.length > 0 ? selectedTotalPrice : totalPrice;
+  const checkoutCount = selectedItems.length > 0 ? selectedCount : cartCount;
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -202,7 +206,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
 
-    if (cartCount === 0) {
+    if (checkoutCount === 0) {
       toast.error("Giỏ hàng trống.");
       return;
     }
@@ -220,7 +224,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const orderItems = cartItems.map((item) => ({
+      const orderItems = checkoutItems.map((item) => ({
         productId: item.productId,
         name: item.name,
         price: item.price,
@@ -231,10 +235,10 @@ export default function CheckoutPage() {
 
       const orderPayload = {
         items: orderItems,
-        subtotal: totalPrice,
+        subtotal: checkoutTotalPrice,
         shippingFee: 0,
         couponCode: couponInfo?.code || undefined,
-        total: totalPrice,
+        total: checkoutTotalPrice,
         paymentMethod: paymentMethod,
         shippingAddress: {
           fullName: formData.fullName,
@@ -273,7 +277,8 @@ export default function CheckoutPage() {
         }
       }
 
-      await clearCart();
+      const checkedOutIds = checkoutItems.map((item) => item.id);
+      await removeItems(checkedOutIds);
       if (paymentMethod === "momo" && response.data?.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       } else {
@@ -288,7 +293,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (cartCount === 0) {
+  if (checkoutCount === 0) {
     return (
       <div className="container w-[90%] max-w-[1000px] mx-auto mt-10 py-20 text-center">
         <h1 className="text-3xl font-bold mb-4">Giỏ hàng của bạn đang trống</h1>
@@ -530,11 +535,11 @@ export default function CheckoutPage() {
         {/* === CỘT PHẢI (TÓM TẮT ĐƠN HÀNG) === */}
         <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-sm h-fit">
           <h2 className="text-xl font-bold mb-4 border-b pb-4">
-            Đơn hàng ({cartCount} sản phẩm)
+            Đơn hàng ({checkoutCount} sản phẩm)
           </h2>
 
           <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
-            {cartItems.map((item) => (
+            {checkoutItems.map((item) => (
               <OrderSummaryItem key={item.id} item={item} />
             ))}
           </div>
@@ -561,7 +566,7 @@ export default function CheckoutPage() {
           <div className="py-4 border-b">
             <div className="flex justify-between text-gray-700">
               <span>Tạm tính:</span>
-              <span>{totalPrice.toLocaleString("vi-VN")} ₫</span>
+              <span>{checkoutTotalPrice.toLocaleString("vi-VN")} ₫</span>
             </div>
             {couponInfo && (
               <div className="flex justify-between text-green-600">
@@ -577,7 +582,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between font-bold text-xl pt-4 mt-4">
             <span>Tổng cộng:</span>
             <span className="text-2xl">
-              {Math.max(totalPrice - (couponInfo?.discountValue || 0), 0).toLocaleString("vi-VN")} ₫
+              {Math.max(checkoutTotalPrice - (couponInfo?.discountValue || 0), 0).toLocaleString("vi-VN")} ₫
             </span>
           </div>
         </div>

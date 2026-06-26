@@ -21,12 +21,26 @@ function saveCart(items) {
   localStorage.setItem("cart", JSON.stringify(items));
 }
 
+function loadSelectedIds() {
+  try {
+    const data = localStorage.getItem("cart_selected");
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSelectedIds(ids) {
+  localStorage.setItem("cart_selected", JSON.stringify(ids));
+}
+
 export function CartProvider({ children }) {
   const { currentUser } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [modalData, setModalData] = useState({ isOpen: false, product: null, quantity: 1, selectedSize: null });
   const [couponInfo, setCouponInfo] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // Web Audio API để tổng hợp âm thanh "ting"
   const playChimeSound = () => {
@@ -66,7 +80,11 @@ export function CartProvider({ children }) {
   }, [modalData.isOpen]);
 
   useEffect(() => {
-    setCartItems(loadCart());
+    const items = loadCart();
+    setCartItems(items);
+    const savedIds = loadSelectedIds();
+    const validIds = savedIds.filter((id) => items.some((item) => item.id === id));
+    setSelectedIds(validIds);
   }, []);
 
   const addToCart = useCallback(async (product, quantityToAdd = 1, selectedSize = null) => {
@@ -124,16 +142,57 @@ export function CartProvider({ children }) {
     const items = loadCart().filter((i) => i.id !== itemId);
     saveCart(items);
     setCartItems(items);
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => id !== itemId);
+      saveSelectedIds(next);
+      return next;
+    });
   }, []);
 
   const clearCart = useCallback(async () => {
     saveCart([]);
     setCartItems([]);
+    setSelectedIds([]);
+    saveSelectedIds([]);
   }, []);
 
   const resetCart = useCallback(() => {
     saveCart([]);
     setCartItems([]);
+    setSelectedIds([]);
+    saveSelectedIds([]);
+  }, []);
+
+  const toggleItemSelection = useCallback((itemId) => {
+    setSelectedIds((prev) => {
+      const next = prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId];
+      saveSelectedIds(next);
+      return next;
+    });
+  }, []);
+
+  const selectAllItems = useCallback(() => {
+    const allIds = cartItems.map((item) => item.id);
+    setSelectedIds(allIds);
+    saveSelectedIds(allIds);
+  }, [cartItems]);
+
+  const deselectAllItems = useCallback(() => {
+    setSelectedIds([]);
+    saveSelectedIds([]);
+  }, []);
+
+  const removeItems = useCallback(async (itemIds) => {
+    const items = loadCart().filter((i) => !itemIds.includes(i.id));
+    saveCart(items);
+    setCartItems(items);
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => !itemIds.includes(id));
+      saveSelectedIds(next);
+      return next;
+    });
   }, []);
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -142,6 +201,17 @@ export function CartProvider({ children }) {
     (total, item) => total + item.price * item.quantity,
     0
   );
+
+  const selectedItems = cartItems.filter((item) => selectedIds.includes(item.id));
+
+  const selectedTotalPrice = selectedItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+  const selectedCount = selectedItems.reduce((total, item) => total + item.quantity, 0);
+
+  const allSelected = cartItems.length > 0 && selectedIds.length === cartItems.length;
 
   const value = {
     cartItems,
@@ -155,6 +225,15 @@ export function CartProvider({ children }) {
     isLoading,
     couponInfo,
     setCouponInfo,
+    selectedIds,
+    selectedItems,
+    selectedTotalPrice,
+    selectedCount,
+    allSelected,
+    toggleItemSelection,
+    selectAllItems,
+    deselectAllItems,
+    removeItems,
   };
 
   return (
