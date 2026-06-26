@@ -1,264 +1,199 @@
-# SOAP Project — Changelog & Architecture
+# CHANGELOG - Tính năng Giỏ hàng
 
-## Tổng quan kiến trúc (Microservices)
+## 1. Cơ chế chọn sản phẩm trước khi thanh toán (Shopee-like)
 
-```
-                                   ┌──────────────────┐
-                                   │    Frontend      │
-                                   │   (React + Vite) │
-                                   └────────┬─────────┘
-                                            │ :5173
-                                   ┌────────▼─────────┐
-                                   │      Nginx       │
-                                   │   Reverse Proxy  │
-                                   └──┬───┬───┬───┬───┘
-                                      │   │   │   │
-                       ┌──────────────┘   │   │   └──────────────┐
-                       ▼                  ▼   ▼                  ▼
-              ┌───────────────┐   ┌───────────────┐   ┌──────────────────┐
-              │ identity-     │   │ catalog-      │   │    order-        │
-              │ service :3001 │   │ service :3002 │   │  service :3003   │
-              │ (auth/users)  │   │ (products/    │   │ (orders/         │
-              │               │   │  brands/...)  │   │  promotions)     │
-              └───────────────┘   └───────────────┘   └────────┬─────────┘
-                       │                                       │
-                       │                                       │ HTTP
-                       ▼                                       ▼
-              ┌───────────────┐                        ┌───────────────┐
-              │  payment-     │                        │    Redis      │
-              │ service :3004 │                        │  (event bus)  │
-              │ (MoMo sandbox)│                        └───────┬───────┘
-              └───────────────┘                                │
-                                                               │ subscribe
-                                                               ▼
-                                                      ┌──────────────────┐
-                                                      │  notification-   │
-                                                      │  service :3005   │
-                                                      │  (Nodemailer)    │
-                                                      └──────────────────┘
-```
+### Vấn đề
+Trước đây, khi bấm "Tiến hành thanh toán", **toàn bộ** sản phẩm trong giỏ hàng sẽ được đem đi thanh toán. Không có cách để chọn sản phẩm cụ thể muốn mua.
 
----
+### Giải pháp
+Thêm checkbox cho từng sản phẩm, cho phép người dùng tick chọn sản phẩm muốn mua rồi mới thanh toán.
 
-## Phase 1 — Refactor monolith → microservices
+### File thay đổi
 
-### Mục tiêu
-Tách monolith `Backend/` thành các microservice riêng, chuyển cart sang localStorage.
+#### `Frontend/src/context/CartContext.jsx`
+- Thêm state `selectedIds` (mảng các ID được chọn), lưu vào `localStorage("cart_selected")`
+- Thêm các hàm:
+  - `toggleItemSelection(itemId)` — chọn/bỏ chọn 1 sản phẩm
+  - `selectAllItems()` — chọn tất cả
+  - `deselectAllItems()` — bỏ chọn tất cả
+  - `removeItems(itemIds)` — xóa nhiều sản phẩm cùng lúc (dùng sau checkout)
+- Thêm computed values:
+  - `selectedItems` — danh sách sản phẩm đang được chọn
+  - `selectedTotalPrice` — tổng tiền của sản phẩm đã chọn
+  - `selectedCount` — số lượng sản phẩm đã chọn
+  - `allSelected` — true nếu tất cả đều được chọn
+- Khi xóa 1 sản phẩm (`removeFromCart`), tự động loại ID đó khỏi `selectedIds`
 
-### Thay đổi
+#### `Frontend/src/components/CartItem.jsx`
+- Thêm checkbox ở đầu mỗi dòng sản phẩm
+- Checkbox gọi `toggleItemSelection(item.id)` khi thay đổi
+- Highlight nền đỏ nhạt (`bg-red-50/30`) cho sản phẩm đang được chọn
+- Grid layout thay đổi: checkbox (1) + product (4) + price (2) + qty (2) + total (2) + delete (1) = 12
 
-#### 1. Xoá monolith
-- `Backend/` — toàn bộ thư mục (controller, model, route cũ)
+#### `Frontend/src/pages/CartPage.jsx`
+- Thêm checkbox "Select All" ở header row (desktop)
+- `CartSummary` nhận props mới: `selectedTotalPrice`, `selectedCount`, `hasSelection`
+- Nút "Tiến hành thanh toán" được **disable** (màu xám) nếu chưa chọn sản phẩm nào
+- Hiển thị "Chọn sản phẩm để thanh toán" khi chưa chọn, "Thanh toán (N)" khi đã chọn
+- Coupon validation yêu cầu phải chọn sản phẩm trước, subtotal gửi đi dựa trên `selectedTotalPrice`
 
-#### 2. Xoá cart-service
-- `cart-service/` — toàn bộ thư mục
-
-#### 3. order-service — Gọi catalog-service qua HTTP
-- **File: `order-service/app/controllers/orderController.js`**
-  - `createOrder`: thay `Product.findByIdAndUpdate` bằng `axios.post` đến catalog-service `/api/products/:id/reduce-stock` (kèm `x-internal-key`)
-  - `updateOrder` (delivered): gọi `/api/products/:id/increment-sold`
-  - `updateOrder` (cancelled): gọi `/api/products/:id/restore-stock`
-  - `cancelOrder`: gọi `/api/products/:id/restore-stock`
-- **File: `order-service/app/routes/index.js`**
-  - Thêm `router.use('/promotions', require('./promotions'))`
-
-#### 4. catalog-service — Internal auth + stock APIs
-- **File mới: `catalog-service/app/middleware/internalAuth.js`**
-  - Kiểm tra header `x-internal-key`
-- **File: `catalog-service/app/controllers/productController.js`**
-  - `reduceStock`: `$inc: { stock: -quantity }` (atomic)
-  - `restoreStock`: `$inc: { stock: quantity }`
-  - `incrementSold`: `$inc: { sold: quantity }`
-- **File: `catalog-service/app/routes/products.js`**
-  - Gắn `internalAuth` vào 3 internal endpoints
-- **File: `catalog-service/.env`**
-  - Thêm `INTERNAL_API_KEY=internal123`
-- Thêm models/controllers/routes cho **reviews**, **wishlist**, **news**
-- `routes/index.js`: thêm `/reviews`, `/wishlist`, `/news`
-
-#### 5. order-service — Promotions CRUD
-- **File mới:** `models/Promotion.js`, `controllers/promotionController.js`, `routes/promotions.js`
-
-#### 6. Frontend — Cart → localStorage
-- **File: `Frontend/src/context/CartContext.jsx`**
-  - Bỏ API calls, dùng `localStorage` (addToCart, updateQuantity, removeFromCart, clearCart, resetCart)
-- **File: `Frontend/src/components/CartItem.jsx`**
-  - `productUrl` dùng `item.productSlug || item.productId`
-
-#### 7. Nginx + Docker
-- **File: `nginx/nginx.conf`**
-  - Thêm blocks: `/api/promotions` → order-service, `/api/reviews`, `/api/wishlist`, `/api/news` → catalog-service
-  - Xoá monolith
-- **File: `docker-compose.yml`**
-  - Xoá `monolith` service
+#### `Frontend/src/pages/CheckoutPage.jsx`
+- Sử dụng `selectedItems` thay vì `cartItems` (nếu có chọn)
+- Fallback về `cartItems` nếu không có chọn (trường hợp vào thẳng `/thanh-toan`)
+- Sau khi đặt hàng thành công, chỉ xóa các item đã thanh toán (`removeItems`), giữ lại item chưa chọn
 
 ---
 
-## Phase 2 — payment-service (MoMo sandbox)
+## 2. Xóa giỏ hàng khi logout
 
-### Mục tiêu
-Thêm payment-service riêng với MoMo sandbox, order-service gọi HTTP để tạo payment URL, payment-service nhận webhook callback.
+### Vấn đề
+Khi logout, giỏ hàng vẫn còn hiển thị cho đến khi refresh trang.
 
-### Thay đổi
+### File thay đổi
 
-#### 1. Mới: `payment-service/`
-- **`package.json`** — Express + axios + winston
-- **`Dockerfile`** — node:18-alpine
-- **`.env`** — MoMo sandbox credentials + redirect/ipn URLs
-- **`app.js`** — Express server port 3004, mount routes tại `/api`
-- **`app/config/momo.js`** — MoMo sandbox config
-- **`app/config/logger.js`** — Winston logger (console + daily rotate)
-- **`app/utils/signature.js`** — HMAC SHA256 create + verify
-- **`app/utils/httpClient.js`** — axios wrapper
-- **`app/controllers/paymentController.js`**:
-  - `createPayment` — `POST /api/payment/create` → gọi MoMo API `https://test-payment.momo.vn/v2/gateway/api/create`, trả `payUrl`
-  - `ipnHandler` — `POST /api/payment/ipn` verify signature → gọi order-service `PATCH /orders/:id/payment-status`
-  - `paymentReturn` — `GET /api/payment/return` redirect user sang frontend `/payment/return`
-- **`app/routes/payment.js`** — 3 endpoints
-- **`app/routes/index.js`** — mount + health endpoint
+#### `Frontend/src/context/AuthContext.jsx`
+- Thêm `localStorage.removeItem("cart_selected")` vào hàm `logout` (bên cạnh `cart` đã có sẵn)
 
-#### 2. Sửa: `order-service/`
-- **`app/controllers/orderController.js`**:
-  - Thêm `PAYMENT_SERVICE_URL`
-  - `createOrder`: nếu `paymentMethod === 'momo'`, gọi payment-service → lưu `paymentUrl` → trả về response
-  - Thêm `updatePaymentStatus` (internal) — cập nhật `paymentStatus`, `paymentTransactionId`, `paidAt`
-- **`app/routes/orders.js`**:
-  - Thêm `PATCH /:id/payment-status` (internalAuth)
-- **File mới: `app/middleware/internalAuth.js`**
-- **`.env`** — thêm `PAYMENT_SERVICE_URL=http://payment-service:3004`
-
-#### 3. Sửa: `Frontend/`
-- **`CheckoutPage.jsx`**:
-  - MoMo active (bỏ disabled), chọn MoMo → redirect sang `payUrl` sau đặt hàng
-- **`PaymentReturnPage.jsx`** (mới) — hiển thị kết quả thanh toán (success/failed)
-- **`App.jsx`** — thêm route `/payment/return`
-- **`AccountPage.jsx`** — thêm mapping `'momo' ? 'MoMo'`
-
-#### 4. Nginx + Docker
-- **`nginx/nginx.conf`** — thêm `location /api/payment` → payment-service:3004
-- **`docker-compose.yml`** — thêm `payment-service` service
+#### `Frontend/src/context/CartContext.jsx`
+- Thêm `useEffect` lắng nghe `currentUser`:
+  - Khi `currentUser === null` (logout) → reset `cartItems` về `[]`, reset `selectedIds` về `[]`
 
 ---
 
-## Phase 3 — notification-service + Redis event bus
+## 3. Lưu giỏ hàng lên Server (Cross-session persistence)
 
-### Mục tiêu
-Thêm Redis làm event bus. order-service publish event, notification-service subscribe và gửi email qua Nodemailer (Gmail SMTP). Pattern async, loosely coupled.
+### Vấn đề
+Giỏ hàng chỉ lưu ở `localStorage`. Khi logout rồi login lại, dữ liệu mất vĩnh viễn vì bị xóa khi logout.
 
-### Architecture events
+### Giải pháp
+Tạo database table `cart_items` + API endpoints để đồng bộ giỏ hàng giữa client và server. Giỏ hàng được gắn với user_id, tồn tại trên server ngay cả khi logout.
 
-```
-order-service ──pub──> Redis ──sub──> notification-service ──> Gmail SMTP
-                          │
-                    channel: "order:events"
-```
+### Backend - Cart Service (order-service)
 
-### Thay đổi
+#### Model mới: `CartItem` (`order-service/app/models/index.js`)
 
-#### 1. Redis
-- **`docker-compose.yml`** — thêm service `redis:7-alpine`, port 6379
-
-#### 2. Mới: `notification-service/`
-- **`package.json`** — Express + ioredis + nodemailer
-- **`Dockerfile`** — node:18-alpine
-- **`.env`** — Redis URL, Gmail SMTP config
-- **`app.js`** — Express server port 3005 (healthcheck) + khởi động Redis subscriber
-- **`app/config/email.js`** — Nodemailer transporter (Gmail SMTP, STARTTLS)
-- **`app/services/eventSubscriber.js`** — Subscribe Redis channel `order:events`, parse JSON message, gọi `handleEvent`
-- **`app/services/emailService.js`** — 4 email templates HTML (ORDER_CREATED, ORDER_PAID, ORDER_DELIVERED, ORDER_CANCELLED) + sendEmail
-- **Nếu chưa config SMTP → log ra console**, không crash
-
-#### 3. Sửa: `identity-service/`
-- **File mới: `app/middleware/internalAuth.js`**
-- **`app/controllers/userController.js`** — thêm `getUserById` (trả user, bỏ password)
-- **`app/routes/users.js`** — thêm `GET /:id` (internalAuth)
-- **`.env`** — thêm `INTERNAL_API_KEY=internal123`
-
-#### 4. Sửa: `order-service/`
-- **File mới: `app/utils/eventBus.js`** — Redis pub helper (lazy init, fire-and-forget via `setImmediate`)
-  - `publishOrderCreated(order)`
-  - `publishOrderPaid(order)`
-  - `publishOrderDelivered(order)`
-  - `publishOrderCancelled(order)`
-- **`app/models/Order.js`** — thêm `userEmail: String`
-- **`app/controllers/orderController.js`**:
-  - `createOrder`: fetch userEmail từ identity-service (`GET /api/users/:id`), save, publish `ORDER_CREATED`
-  - `updateOrder`: publish `ORDER_DELIVERED` / `ORDER_CANCELLED`
-  - `updatePaymentStatus`: publish `ORDER_PAID`
-  - `cancelOrder`: publish `ORDER_CANCELLED`
-- **`package.json`** — thêm `ioredis`
-- **`.env`** — thêm `REDIS_URL`, `IDENTITY_SERVICE_URL`
-
-#### 5. Docker
-- **`docker-compose.yml`**:
-  - order-service: thêm `depends_on: redis`, env `REDIS_URL`, `IDENTITY_SERVICE_URL`
-  - Thêm `notification-service` service
-
----
-
-## Hướng dẫn chạy project
-
-### Yêu cầu
-- Docker & Docker Compose
-- Git
-
-### Các bước
-
-```bash
-# 1. Clone & cd
-cd SOAP
-
-# 2. Build & start tất cả services
-docker-compose up --build
-
-# 3. Mở trình duyệt
-# Frontend:    http://localhost:8080
-# (nginx proxy port 8080 → frontend :5173)
+```javascript
+CartItem = sequelize.define('CartItem', {
+  id:             { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  user_id:        { type: DataTypes.INTEGER, allowNull: false },
+  product_id:     { type: DataTypes.INTEGER, allowNull: false },
+  name:           { type: DataTypes.STRING(255), allowNull: false },
+  price:          { type: DataTypes.DECIMAL(15, 0), allowNull: false },
+  image:          { type: DataTypes.STRING(500) },
+  quantity:       { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+  selected_size:  { type: DataTypes.STRING(20) },
+  product_slug:   { type: DataTypes.STRING(255) },
+}, { tableName: 'cart_items', timestamps: true, underscored: true });
 ```
 
-### Services & Ports
+- Table `cart_items` tự động sync khi server khởi động (Sequelize `alter: true`)
+- `user_id` dùng để phân biệt giỏ hàng của từng user
+- `product_id`, `name`, `price`, `image`, `quantity`, `selected_size`, `product_slug` — thông tin sản phẩm
+- `timestamps: true` → tự động có `created_at` và `updated_at`
 
-| Service | Internal Port | Nginx Route |
-|---------|--------------|-------------|
-| Frontend (Vite) | 5173 | `/*` |
-| Nginx | 80 (host 8080) | — |
-| identity-service | 3001 | `/api/auth`, `/api/users` |
-| catalog-service | 3002 | `/api/products`, `/api/brands`, `/api/categories`, `/api/reviews`, `/api/wishlist`, `/api/news` |
-| order-service | 3003 | `/api/orders`, `/api/promotions` |
-| payment-service | 3004 | `/api/payment` |
-| notification-service | 3005 | (internal healthcheck only) |
-| Redis | 6379 | — |
+#### File mới: `order-service/app/controllers/cartController.js`
 
-### Config Gmail SMTP (cho email thật)
+| Method | Endpoint | Chức năng |
+|--------|----------|-----------|
+| `getCart` | `GET /api/cart` | Lấy tất cả sản phẩm trong giỏ của user (sắp xếp mới nhất trước) |
+| `addToCart` | `POST /api/cart` | Thêm sản phẩm. Nếu đã tồn tại (cùng productId + size) → tăng quantity |
+| `updateCartItem` | `PUT /api/cart/:id` | Cập nhật số lượng (kiểm tra > 0) |
+| `removeCartItem` | `DELETE /api/cart/:id` | Xóa 1 sản phẩm khỏi giỏ |
+| `clearCartItems` | `DELETE /api/cart/clear` | Xóa nhiều sản phẩm theo danh sách ID (dùng sau checkout) |
 
-Mở `notification-service/.env` và set:
+Tất cả endpoints đều yêu cầu **JWT auth** (middleware `auth`), chỉ user sở hữu mới có thể thao tác với cart item của mình.
 
-```env
-SMTP_USER=your.email@gmail.com
-SMTP_PASS=your-16-char-gmail-app-password
+#### File mới: `order-service/app/routes/cart.js`
+
+```javascript
+router.get("/", auth, cartController.getCart);
+router.post("/", auth, cartController.addToCart);
+router.put("/:id", auth, cartController.updateCartItem);
+router.delete("/clear", auth, cartController.clearCartItems);  // Phải trước /:id
+router.delete("/:id", auth, cartController.removeCartItem);
 ```
 
-> **Cách tạo App Password Gmail:**
-> 1. Vào https://myaccount.google.com/security
-> 2. Bật 2-Step Verification
-> 3. App passwords → chọn Mail + Windows → generate
-> 4. Copy 16 ký tự vào `SMTP_PASS`
+Lưu ý: Route `DELETE /clear` được đặt trước `DELETE /:id` để Express match đúng.
 
-Nếu **không config**, email sẽ được **log ra console** — không crash.
+#### Sửa: `order-service/app/routes/index.js`
+- Thêm `router.use('/cart', require('./cart'));`
 
-### MoMo Sandbox Test
+#### Sửa: `nginx/nginx.conf`
+- Thêm location block `/api/cart` trỏ tới `http://order-service:3003/api/cart`
 
-MoMo sandbox dùng credentials mặc định:
-- `partnerCode=MOMO`
-- `accessKey=F8BBA842ECF85`
-- `secretKey=K951B6PE1waDMi640xX08PD3vg6EkVlz`
+### Frontend - CartContext rewrite
 
-Khi test local, MoMo IPN không thể gọi vào Docker internal network. Để test:
-1. Dùng **ngrok** expose payment-service: `ngrok http 3004`
-2. Set `MOMO_IPN_URL=https://your-ngrok.ngrok.io/api/payment/ipn` trong payment-service `.env`
-3. Hoặc dùng MoMo sandbox test page để mô phỏng callback
+#### `Frontend/src/context/CartContext.jsx`
 
-### Internal API Key
+**Thay đổi kiến trúc:**
+- **Trước đây**: CRUD hoàn toàn trên localStorage (client-side)
+- **Sau này**: CRUD qua API server (server-side), state React là nguồn dữ liệu chính
 
-Tất cả service dùng chung `INTERNAL_API_KEY=internal123` (set trong .env của mỗi service).
-Dùng cho giao tiếp nội bộ giữa các service, không lộ ra ngoài.
+**Chi tiết:**
+
+1. **Import `fetchApi`** từ `../utils/api` để gọi API
+
+2. **Hàm mapping dữ liệu:**
+   - `mapServerItem(item)` — chuyển snake_case từ server (ví dụ `product_id`) thành camelCase cho frontend (ví dụ `productId`)
+   - `mapLocalItemForServer(item)` — chuyển camelCase frontend thành snake_case cho server
+
+3. **Sync cart khi login/app khởi động:**
+   ```javascript
+   useEffect(() => {
+     if (currentUser) {
+       syncCartFromServer();
+     } else {
+       setCartItems([]);
+       setSelectedIds([]);
+     }
+   }, [currentUser, syncCartFromServer]);
+   ```
+   - Khi `currentUser` thay đổi (login/logout), tự động sync
+   - Logout → clear local state (server cart vẫn còn)
+   - Login → fetch cart từ server về
+
+4. **`addToCart`** — gọi `POST /api/cart`, sau đó `syncCartFromServer()` để refresh state
+
+5. **`updateQuantity`** — gọi `PUT /api/cart/:id`, cập nhật local state ngay (optimistic update tránh phải fetch lại toàn bộ)
+
+6. **`removeFromCart`** — gọi `DELETE /api/cart/:id`, filter local state
+
+7. **`removeItems`** — gọi `DELETE /api/cart/clear` với body `{ ids: [...] }`, filter local state
+
+8. **`clearCart`/`resetCart`** — chỉ clear local state (không gọi API, dùng cho các trường hợp đặc biệt)
+
+**Luồng dữ liệu hoàn chỉnh:**
+
+```
+User thêm sản phẩm:
+  React → POST /api/cart → server lưu DB → response OK → syncCartFromServer() → cập nhật state
+
+User login:
+  CartContext phát hiện currentUser thay đổi → GET /api/cart → render
+
+User logout:
+  CartContext phát hiện currentUser = null → clear state local
+  Server cart vẫn còn nguyên trong database
+
+User login lại:
+  GET /api/cart → render lại giỏ hàng cũ
+
+User checkout (thanh toán):
+  CheckoutPage gọi removeItems([id1, id2, ...]) → DELETE /api/cart/clear
+  Chỉ xóa item đã thanh toán, item chưa chọn vẫn còn
+```
+
+### Tổng kết các file đã thay đổi/tạo mới
+
+| File | Trạng thái | Mô tả |
+|------|-----------|-------|
+| `order-service/app/models/index.js` | Sửa | Thêm CartItem model |
+| `order-service/app/controllers/cartController.js` | **Mới** | Cart CRUD controller |
+| `order-service/app/routes/cart.js` | **Mới** | Cart API routes |
+| `order-service/app/routes/index.js` | Sửa | Đăng ký cart routes |
+| `nginx/nginx.conf` | Sửa | Thêm proxy /api/cart → order-service |
+| `Frontend/src/context/CartContext.jsx` | Sửa lớn | Server-sync cart logic |
+| `Frontend/src/context/AuthContext.jsx` | Sửa | Xóa cart_selected khi logout |
+| `Frontend/src/components/CartItem.jsx` | Sửa | Thêm checkbox |
+| `Frontend/src/pages/CartPage.jsx` | Sửa | Select All, selected summary |
+| `Frontend/src/pages/CheckoutPage.jsx` | Sửa | Dùng selected items |

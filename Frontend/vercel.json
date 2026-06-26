@@ -15,6 +15,7 @@
     { "source": "/api/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/orders/:match*" },
     { "source": "/api/admin/orders/:match*", "destination": "https://soap-order-service.onrender.com/api/admin/orders/:match*" },
     { "source": "/api/promotions/:match*", "destination": "https://soap-order-service.onrender.com/api/promotions/:match*" },
+    { "source": "/api/cart/:match*", "destination": "https://soap-order-service.onrender.com/api/cart/:match*" },
     
     { "source": "/api/payment/:match*", "destination": "https://soap-payment-service.onrender.com/api/payment/:match*" },
 
