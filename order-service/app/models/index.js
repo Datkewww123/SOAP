@@ -1,7 +1,7 @@
 const mysqlDatabase = require('../database/mysql.database');
 const { DataTypes } = require('sequelize');
 
-let Order, OrderItem, Promotion, PromotionUsage;
+let Order, OrderItem, Promotion, PromotionUsage, CartItem;
 
 function initModels() {
   const sequelize = mysqlDatabase.getSequelize();
@@ -79,11 +79,24 @@ function initModels() {
     used_at:     { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   }, { tableName: 'promotion_usages', timestamps: false, underscored: true });
 
+  // --- CART ITEM ---
+  CartItem = sequelize.define('CartItem', {
+    id:             { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id:        { type: DataTypes.INTEGER, allowNull: false },
+    product_id:     { type: DataTypes.INTEGER, allowNull: false },
+    name:           { type: DataTypes.STRING(255), allowNull: false },
+    price:          { type: DataTypes.DECIMAL(15, 0), allowNull: false },
+    image:          { type: DataTypes.STRING(500) },
+    quantity:       { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    selected_size:  { type: DataTypes.STRING(20) },
+    product_slug:   { type: DataTypes.STRING(255) },
+  }, { tableName: 'cart_items', timestamps: true, underscored: true });
+
   // --- ASSOCIATIONS ---
   Order.hasMany(OrderItem, { foreignKey: 'order_id', as: 'items', onDelete: 'CASCADE' });
   OrderItem.belongsTo(Order, { foreignKey: 'order_id' });
 
-  return { Order, OrderItem, Promotion, PromotionUsage };
+  return { Order, OrderItem, Promotion, PromotionUsage, CartItem };
 }
 
 // Helper tạo order code
@@ -97,5 +110,6 @@ function getOrder()          { return Order; }
 function getOrderItem()      { return OrderItem; }
 function getPromotion()      { return Promotion; }
 function getPromotionUsage() { return PromotionUsage; }
+function getCartItem()       { return CartItem; }
 
-module.exports = { initModels, generateOrderCode, getOrder, getOrderItem, getPromotion, getPromotionUsage };
+module.exports = { initModels, generateOrderCode, getOrder, getOrderItem, getPromotion, getPromotionUsage, getCartItem };
